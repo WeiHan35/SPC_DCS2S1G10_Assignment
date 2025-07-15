@@ -20,7 +20,8 @@ int main() {
 	}
 
 // I try edit la /////////
-
+// hello i am jy
+	
 	for (int i = 0; i < appointment.size(); i++) {
 		if (appointment[i] == "10:30") {
 			appointment.erase(appointment.begin() + i);
