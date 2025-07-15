@@ -27,9 +27,12 @@ int main() {
 			break;
 		}
 	}
+	cout << "aaa";
+	cout << "aaa";
 
 	for (string app : appointment) {
 		cout << app << endl;
+		break;
 	}
 	return 0;
 
