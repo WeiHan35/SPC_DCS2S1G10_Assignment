@@ -1,0 +1,166 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+const int MAX_DATES = 31; // Dates 1 to 31
+const int MAX_VENUES = 5; // 5 venues
+const int MAX_SLOTS = 3;  // Morning, Afternoon, Night
+
+string timeSlots[MAX_SLOTS] = { "12pm-3pm", "4pm-7pm", "8pm-11pm" };
+string venueNames[MAX_VENUES] = { "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" };
+
+int bookingStatus[MAX_DATES][MAX_VENUES][MAX_SLOTS] = { {{0}} }; // 0 = available, 1 = booked
+
+struct Booking {
+    int date;
+    int venue;
+    int slot;
+    string decoTheme;
+    int decoCost;
+    string vendorOption;
+    int vendorCost;
+};
+
+vector<Booking> bookings;
+
+void displayVenues() {
+    cout << "Available Venues:\n";
+    for (int i = 0; i < MAX_VENUES; i++) {
+        cout << i + 1 << ". " << venueNames[i] << endl;
+    }
+}
+
+void displayTimeSlots() {
+    cout << "Available Time Slots:\n";
+    for (int i = 0; i < MAX_SLOTS; i++) {
+        cout << i + 1 << ". " << timeSlots[i] << endl;
+    }
+}
+
+void displayDecorationThemes() {
+    cout << "Decoration Themes:\n";
+    cout << "1. Classic (RM 100)\n";
+    cout << "2. Rustic  (RM 150)\n";
+    cout << "3. Elegant (RM 200)\n";
+}
+
+void makeBooking() {
+    int date, venue, slot;
+    int themeChoice, vendorChoice;
+    Booking newBooking;
+
+    cout << "Enter booking date (1-31): ";
+    cin >> date;
+
+    displayVenues();
+    cout << "Select venue: ";
+    cin >> venue;
+    venue--;
+
+    displayTimeSlots();
+    cout << "Select time slot: ";
+    cin >> slot;
+    slot--;
+
+    if (bookingStatus[date][venue][slot] == 1) {
+        cout << "Conflict! This venue is already booked for this date and time slot.\n";
+        return;
+    }
+
+    newBooking.date = date;
+    newBooking.venue = venue;
+    newBooking.slot = slot;
+
+    displayDecorationThemes();
+    cout << "Choose table decoration theme: ";
+    cin >> themeChoice;
+    switch (themeChoice) {
+    case 1:
+        newBooking.decoTheme = "Classic";
+        newBooking.decoCost = 100;
+        break;
+    case 2:
+        newBooking.decoTheme = "Rustic";
+        newBooking.decoCost = 150;
+        break;
+    case 3:
+        newBooking.decoTheme = "Elegant";
+        newBooking.decoCost = 200;
+        break;
+    default:
+        newBooking.decoTheme = "None";
+        newBooking.decoCost = 0;
+    }
+
+    cout << "Vendor Options for Decoration:\n";
+    cout << "1. Self-arranged (RM 0)\n";
+    cout << "2. Organizer-arranged (RM 300)\n";
+    cout << "Select vendor option: ";
+    cin >> vendorChoice;
+    if (vendorChoice == 1) {
+        newBooking.vendorOption = "Self-arranged";
+        newBooking.vendorCost = 0;
+    }
+    else {
+        newBooking.vendorOption = "Organizer-arranged";
+        newBooking.vendorCost = 300;
+    }
+
+    // Mark as booked
+    bookingStatus[date][venue][slot] = 1;
+
+    // Save to vector
+    bookings.push_back(newBooking);
+
+    // Show summary
+    cout << "\nBooking Confirmed!\n";
+    cout << "Date: " << date << "\nVenue: " << venueNames[venue]
+        << "\nTime Slot: " << timeSlots[slot]
+        << "\nDecoration: " << newBooking.decoTheme << " (RM " << newBooking.decoCost << ")"
+        << "\nVendor: " << newBooking.vendorOption << " (RM " << newBooking.vendorCost << ")"
+        << "\nTotal Cost: RM " << (newBooking.decoCost + newBooking.vendorCost) << "\n";
+}
+
+void showAllBookings() {
+    cout << "\nAll Bookings:\n";
+    for (const Booking& b : bookings) {
+        cout << "Date: " << b.date
+            << ", Venue: " << venueNames[b.venue]
+            << ", Time: " << timeSlots[b.slot]
+            << ", Deco: " << b.decoTheme
+            << ", Vendor: " << b.vendorOption
+            << ", Total: RM " << (b.decoCost + b.vendorCost)
+            << "\n";
+    }
+}
+
+int main() {
+    int choice;
+    do {
+        cout << "\n==== Event Booking & Logistics System ====\n";
+        cout << "1. Make a Booking\n";
+        cout << "2. View All Bookings\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+        case 1:
+            makeBooking();
+            break;
+        case 2:
+            showAllBookings();
+            break;
+        case 0:
+            cout << "Goodbye!\n";
+            break;
+        default:
+            cout << "Invalid choice.\n";
+        }
+
+    } while (choice != 0);
+
+    return 0;
+}
