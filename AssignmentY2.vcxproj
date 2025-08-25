@@ -128,6 +128,12 @@
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="A.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="registrations.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
