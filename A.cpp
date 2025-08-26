@@ -10,6 +10,9 @@
 #include<fstream>
 #include <map>
 
+void displayMenu();
+void choice();
+void addRegisteration();
 
 using namespace std;
 
@@ -25,33 +28,10 @@ struct EventRegistration {
 };
 int main() {
 
-    vector<EventRegistration> registrations;
+	displayMenu();
+	choice();
 
-    ifstream inputFile("registrations.txt");
-    if (!inputFile) {
-        cerr << "Error opening file." << endl;
-        return 1;
-    }
-    string line;
-    while (getline(inputFile, line)) {
-        stringstream ss(line);
-        EventRegistration reg;
-        getline(ss, reg.registrationID, ',');
-        getline(ss, reg.manName, ',');
-        getline(ss, reg.womanName, ',');
-        getline(ss, reg.phone, ',');
-        getline(ss, reg.email, ',');
-        string guestsStr;
-        getline(ss, guestsStr, ',');
-        reg.numberOfGuests = stoi(guestsStr);
-        getline(ss, reg.packageType, ',');
-        getline(ss, reg.specialRequests, ',');
-        registrations.push_back(reg);
 
-    }
-    inputFile.close();
-    cout << left << setw(15) << "Reg ID"
-        << setw;
 
 
 
@@ -76,21 +56,84 @@ void choice() {
     switch (choice)
     {
     case 1:
-
-
+		addRegisteration();
+		break;
     case 2:
-
+        break;
     case 3:
+		break;
     case 4:
+		break;
 
 
     default:
-        break;
+		cout << "Please enter a valid number." << endl;
+
     }
 }
 
 void addRegisteration() {
-    vector<EventRegistration> registrations;
+	EventRegistration registeration;
+    vector<EventRegistration> reg;
+    ifstream inputFile("registrations.txt");
+	ofstream outputFile("registrations.txt");
+    if (!inputFile) {
+        cout << "Error opening file." << endl;
+        return ; 
+    }
+	cin.ignore(); 
+    cout << "Enter 1st couple name(Male):";
+	getline(cin, registeration.manName);
+	cout << "Enter 2nd couple name:(Female)";
+	getline(cin, registeration.womanName);
+	cout << "Enter phone number:";
+	getline(cin, registeration.phone);
+	cout << "Enter email:";
+	getline(cin, registeration.email);
+	cout << "Enter number of guests:";
+	cin >> registeration.numberOfGuests;
+	cout << "Enter package type (Basic, Standard, Premium):";
+	cin >> registeration.packageType;
+	cout << "Enter any special requests:";
+	cin.ignore(); // To ignore the newline character left in the buffer
+	getline(cin, registeration.specialRequests);
+	// Generate a unique registration ID
+    
 
+
+
+
+
+    registeration.registrationID = "REG" + to_string(reg.size() + 1);
+    // Display the registration details
+    cout << "Registration Details:" << endl;
+    cout << "Registration ID: " << registeration.registrationID << endl;
+    cout << "Couple Names: " << registeration.manName << " and " << registeration.womanName << endl;
+    cout << "Phone: " << registeration.phone << endl;
+    cout << "Email: " << registeration.email << endl;
+    cout << "Number of Guests: " << registeration.numberOfGuests << endl;
+    cout << "Package Type: " << registeration.packageType << endl;
+	cout << "Special Requests: " << registeration.specialRequests << endl;
+	reg.push_back(registeration);
+	// Save the new registration to the file
+	//check if file is empty
+	//another way to check if file is empty
+
+
+    if (inputFile.peek() == ifstream::traits_type::eof()) {
+        outputFile << "RegistrationID,ManName,WomanName,Phone,Email,NumberOfGuests,PackageType,SpecialRequests" << endl;
+	}
+    //check if file is not empty
+    else {
+        string line;
+        while (getline(inputFile, line)) {
+            outputFile << line << endl;
+        }
+	}
+	outputFile << registeration.registrationID << "," << registeration.manName << "," <<
+        registeration.womanName << "," << registeration.phone << "," << registeration.email << "," <<
+        registeration.numberOfGuests << "," << registeration.packageType << "," << registeration.specialRequests << endl;
+
+    inputFile.close();
 
 }
