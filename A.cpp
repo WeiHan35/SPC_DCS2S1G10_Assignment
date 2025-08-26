@@ -99,12 +99,14 @@ void addRegisteration() {
 	getline(cin, registeration.specialRequests);
 	// Generate a unique registration ID
     
+    string line;
+    int regNum=0;
+    while (getline(inputFile, line)) {
+        outputFile << line << endl;
+        regNum++;
+    }
 
-
-
-
-
-    registeration.registrationID = "REG" + to_string(reg.size() + 1);
+	registeration.registrationID = "REG" + to_string(regNum + 1);
     // Display the registration details
     cout << "Registration Details:" << endl;
     cout << "Registration ID: " << registeration.registrationID << endl;
@@ -115,17 +117,13 @@ void addRegisteration() {
     cout << "Package Type: " << registeration.packageType << endl;
 	cout << "Special Requests: " << registeration.specialRequests << endl;
 	reg.push_back(registeration);
-	// Save the new registration to the file
-	//check if file is empty
-	//another way to check if file is empty
 
 
-    if (inputFile.peek() == ifstream::traits_type::eof()) {
+	//how to check if file is empty in the easier way
+    if (regNum == 0) {
         outputFile << "RegistrationID,ManName,WomanName,Phone,Email,NumberOfGuests,PackageType,SpecialRequests" << endl;
 	}
-    //check if file is not empty
     else {
-        string line;
         while (getline(inputFile, line)) {
             outputFile << line << endl;
         }
