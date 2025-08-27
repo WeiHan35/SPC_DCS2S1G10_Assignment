@@ -1,1 +1,2 @@
 1001,wong wai zhong,joan hau,01931562555,joanhoa@gmail.com,12,Basic,None
+1002,zhanhui,yoke,324874222,cjdshf@gmail.com,212,Basic,Firework

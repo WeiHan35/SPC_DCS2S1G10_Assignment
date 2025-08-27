@@ -1,4 +1,4 @@
-﻿#include <iostream>
+﻿
 #include <iomanip>
 #include <vector>
 #include <regex>
@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <string>
 #include <fstream>
-
+#include <iostream>
 using namespace std;
 
 struct EventRegistration {
@@ -37,7 +37,7 @@ string inputName(const string& prompt);
 string inputPhone();
 string inputEmail();
 int inputGuests();
-
+string inputPackage();
 
 int main() {
     vector<EventRegistration> reg;
@@ -229,7 +229,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 
             cout << "Enter new Package (" << r.packageType << "): ";
             getline(cin, input);
-            if (!input.empty()) r.packageType = inputPackage();
+            if (!input.empty()) { r.packageType = inputPackage(); }
 
             cout << "Enter new Special Requests (" << r.specialRequests << "): ";
             getline(cin, input);
@@ -313,6 +313,7 @@ string inputPackage() {
         getline(cin, pkg);
         if (pkg == "Basic" || pkg == "Standard" || pkg == "Premium") return pkg;
         cout << "Invalid package type. Must be Basic, Standard, or Premium.\n";
+
     }
 }
 
