@@ -54,7 +54,7 @@ int main() {
 void displayMenu() {
     cout << "Event Registration System" << endl;
     cout << "1. Add New Registration" << endl;
-    cout << "2. Search Registration by ID" << endl;
+    cout << "2. Search Registration" << endl;
     cout << "3. Delete Registration" << endl;
     cout << "4. Update Registration" << endl;
     cout << "5. Exit" << endl;
@@ -107,6 +107,8 @@ void searchRegistrationByID(vector<EventRegistration>& reg) {
         if (id == r.registrationID) {
             cout << "Registration found!\n";
             outputRegistration(r);
+			cout << "Press enter key to continue....";
+			getline(cin, enter);
             return;
         }
     }
@@ -126,6 +128,8 @@ void deleteRegistrationByID(vector<EventRegistration>& reg) {
         if (id == reg[i].registrationID) {
             cout << "Registration Found and Deleted:\n";
             outputRegistration(reg[i]);
+			cout << "Press enter key to continue....";
+			getline(cin, enter);
             reg.erase(reg.begin() + i);
             ofstream outputFile("registrations.txt");
             for (const auto& r : reg) {
@@ -190,46 +194,48 @@ void rewriteToVector(vector<EventRegistration>& reg) {
 void updateRegistrationByID(vector<EventRegistration>& reg) {
     clearScreen();
 
-    string id,enter;
+    string id, enter;
     cout << "Enter Registration ID to update: ";
     cin >> id;
     cin.ignore();
+
     for (auto& r : reg) {
         if (id == r.registrationID) {
             cout << "Registration Found:\n";
             outputRegistration(r);
 
-            string input;
             cout << "\nPress Enter to keep current value.\n";
+            string input;
 
             cout << "Enter new 1st Couple Name (" << r.manName << "): ";
             getline(cin, input);
-            if (!input.empty()) r.manName = input;
+            if (!input.empty()) r.manName = inputName("Enter 1st Couple Name: ");
 
             cout << "Enter new 2nd Couple Name (" << r.womanName << "): ";
             getline(cin, input);
-            if (!input.empty()) r.womanName = input;
+            if (!input.empty()) r.womanName = inputName("Enter 2nd Couple Name: ");
 
             cout << "Enter new Phone (" << r.phone << "): ";
             getline(cin, input);
-            if (!input.empty()) r.phone = input;
+            if (!input.empty()) r.phone = inputPhone();
 
             cout << "Enter new Email (" << r.email << "): ";
             getline(cin, input);
-            if (!input.empty()) r.email = input;
+            if (!input.empty()) r.email = inputEmail();
 
             cout << "Enter new Number of Guests (" << r.numberOfGuests << "): ";
             getline(cin, input);
-            if (!input.empty()) r.numberOfGuests = stoi(input);
+            if (!input.empty()) r.numberOfGuests = inputGuests();
 
             cout << "Enter new Package (" << r.packageType << "): ";
             getline(cin, input);
-            if (!input.empty()) r.packageType = input;
+            if (!input.empty()) r.packageType = inputPackage();
 
             cout << "Enter new Special Requests (" << r.specialRequests << "): ";
             getline(cin, input);
-            if (!input.empty()) r.specialRequests = input;
+            if (!input.empty()) r.specialRequests = input; 
 
+            // 保存到文件
             ofstream outputFile("registrations.txt");
             for (const auto& x : reg) {
                 outputFile << x.registrationID << ","
@@ -245,10 +251,12 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
             return;
         }
     }
+
     cout << "No Registration found with this ID.\n";
     cout << "Press enter key to continue....";
     getline(cin, enter);
 }
+
 // ===== Validation Functions =====
 string inputName(const string& prompt) {
     string name;
