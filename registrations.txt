@@ -1,2 +1,3 @@
 1001,wong wai zhong,joan hau,01931562555,joanhoa@gmail.com,12,Basic,None
 1002,zhanhui,yoke,324874222,cjdshf@gmail.com,212,Basic,Firework
+1003,johor,pahang,973792797,hjfjfj@gmail.com,6,romantic dinner,None

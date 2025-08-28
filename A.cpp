@@ -309,10 +309,11 @@ int inputGuests() {
 string inputPackage() {
     string pkg;
     while (true) {
-        cout << "Enter package type (Basic, Standard, Premium): ";
+        cout << "Eg.Surprise Proposal,Romantic Dinner, Family Gathering, Beach Proposal or Private home Proposal\n Enter package type : ";
         getline(cin, pkg);
-        if (pkg == "Basic" || pkg == "Standard" || pkg == "Premium") return pkg;
-        cout << "Invalid package type. Must be Basic, Standard, or Premium.\n";
+        transform(pkg.begin(), pkg.end(), pkg.begin(), ::tolower);
+        if (pkg == "surprise proposal" || pkg == "romantic dinner" || pkg == "family gathering" || pkg == "beach proposal" || pkg == "private home proposal") return pkg;
+        cout << "Invalid package type. Must be Surprise Proposal,Romantic Dinner, Family Gathering, Beach Proposal or Private home Proposal\n";
 
     }
 }
