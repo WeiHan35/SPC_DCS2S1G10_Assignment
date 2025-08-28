@@ -309,7 +309,7 @@ int inputGuests() {
 string inputPackage() {
     string pkg;
     while (true) {
-        cout << "Eg.Surprise Proposal,Romantic Dinner, Family Gathering, Beach Proposal or Private home Proposal\n Enter package type : ";
+        cout << "Choose a Package Type\nEg.Surprise Proposal (Base: RM1200)\nRomantic Dinner(Base:RM1500)\nFamily Gathering(Base:RM1500) \nBeach Proposal(Base:RM2000)\nPrivate home Proposal(Base:RM1100)\n Enter package type : ";
         getline(cin, pkg);
         transform(pkg.begin(), pkg.end(), pkg.begin(), ::tolower);
         if (pkg == "surprise proposal" || pkg == "romantic dinner" || pkg == "family gathering" || pkg == "beach proposal" || pkg == "private home proposal") return pkg;
