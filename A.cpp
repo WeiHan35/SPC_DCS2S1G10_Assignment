@@ -64,17 +64,40 @@ void displayMenu() {
 void choice(vector<EventRegistration>& reg) {
     rewriteToVector(reg);
     int c;
-    cin >> c;
-    cin.ignore();
-    switch (c) {
-    case 1: addRegistration(reg); break;
-    case 2: searchRegistrationByID(reg); break;
-    case 3: deleteRegistrationByID(reg); break;
-    case 4: updateRegistrationByID(reg); break;
-    case 5: cout << "Exiting the program.\n"; exit(0);
-    default: cout << "Please enter a valid number.\n";
+
+    while (true) {
+        if (!(cin >> c)) {  // 如果输入的不是数字
+            cin.clear(); // 清除错误状态
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // 丢掉错误输入
+            cout << "Invalid input. Please enter a number (1-5).\n";
+            continue; // 重新输入
+        }
+
+        switch (c) {
+        case 1:
+            addRegistration(reg);
+            break;
+        case 2:
+            searchRegistrationByID(reg);
+            break;
+        case 3:
+            deleteRegistrationByID(reg);
+            break;
+        case 4:
+            updateRegistrationByID(reg);
+            break;
+        case 5:
+            cout << "Exiting program." << endl;
+            exit(0);
+        default:
+            cout << "Invalid choice. Please enter between 1 and 5.\n";
+            continue; // 回到循环
+        }
+
+        break; // 输入有效就跳出循环
     }
 }
+
 
 void addRegistration(vector<EventRegistration>& reg) {
     clearScreen();
