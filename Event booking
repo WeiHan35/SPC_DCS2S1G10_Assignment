@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <fstream>   // for file I/O
+#include <limits>    // for input validation
 
 using namespace std;
 
@@ -11,7 +13,7 @@ const int MAX_SLOTS = 3;  // Morning, Afternoon, Night
 string timeSlots[MAX_SLOTS] = { "12pm-3pm", "4pm-7pm", "8pm-11pm" };
 string venueNames[MAX_VENUES] = { "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" };
 
-int bookingStatus[MAX_DATES][MAX_VENUES][MAX_SLOTS] = { {{0}} }; // 0 = available, 1 = booked
+int bookingStatus[MAX_DATES + 1][MAX_VENUES][MAX_SLOTS] = { {{0}} }; 
 
 struct Booking {
     int date;
@@ -24,6 +26,11 @@ struct Booking {
 };
 
 vector<Booking> bookings;
+
+void clearInput() {
+    cin.clear();
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+}
 
 void displayVenues() {
     cout << "Available Venues:\n";
@@ -46,26 +53,88 @@ void displayDecorationThemes() {
     cout << "3. Elegant (RM 200)\n";
 }
 
+// Save bookings to file
+void saveBookingsToFile() {
+    ofstream outFile("bookings.txt");
+    for (const Booking& b : bookings) {
+        outFile << b.date << ","
+            << b.venue << ","
+            << b.slot << ","
+            << b.decoTheme << ","
+            << b.decoCost << ","
+            << b.vendorOption << ","
+            << b.vendorCost << "\n";
+    }
+    outFile.close();
+}
+
+// Load bookings from file
+void loadBookingsFromFile() {
+    ifstream inFile("bookings.txt");
+    if (!inFile) return; // this is to prevent when no file inside
+
+    Booking b;
+    char comma;
+    while (inFile >> b.date >> comma >> b.venue >> comma >> b.slot >> comma) {
+        getline(inFile, b.decoTheme, ',');
+        inFile >> b.decoCost >> comma;
+        getline(inFile, b.vendorOption, ',');
+        inFile >> b.vendorCost;
+        inFile.ignore();
+
+        bookings.push_back(b);
+        bookingStatus[b.date][b.venue][b.slot] = 1; // restore booking status
+    }
+    inFile.close();
+}
+
 void makeBooking() {
     int date, venue, slot;
     int themeChoice, vendorChoice;
     Booking newBooking;
 
-    cout << "Enter booking date (1-31): ";
-    cin >> date;
+    // Date validation
+    do {
+        cout << "Enter booking date (1-31): ";
+        cin >> date;
+        if (cin.fail() || date < 1 || date > MAX_DATES) {
+            cout << "Invalid date! Please enter 1-31.\n";
+            clearInput();
+            continue;
+        }
+        break;
+    } while (true);
 
+    // Venue validation
     displayVenues();
-    cout << "Select venue: ";
-    cin >> venue;
-    venue--;
+    do {
+        cout << "Select venue (1-" << MAX_VENUES << "): ";
+        cin >> venue;
+        if (cin.fail() || venue < 1 || venue > MAX_VENUES) {
+            cout << "Invalid venue! Please enter between 1 and " << MAX_VENUES << ".\n";
+            clearInput();
+            continue;
+        }
+        venue--;
+        break;
+    } while (true);
 
+    // Slot validation
     displayTimeSlots();
-    cout << "Select time slot: ";
-    cin >> slot;
-    slot--;
+    do {
+        cout << "Select time slot (1-" << MAX_SLOTS << "): ";
+        cin >> slot;
+        if (cin.fail() || slot < 1 || slot > MAX_SLOTS) {
+            cout << "Invalid slot! Please enter between 1 and " << MAX_SLOTS << ".\n";
+            clearInput();
+            continue;
+        }
+        slot--;
+        break;
+    } while (true);
 
     if (bookingStatus[date][venue][slot] == 1) {
-        cout << "Conflict! This venue is already booked for this date and time slot.\n";
+        cout << "I am sorry! This venue is already booked for this date and time slot.\n";
         return;
     }
 
@@ -73,9 +142,19 @@ void makeBooking() {
     newBooking.venue = venue;
     newBooking.slot = slot;
 
+    // Decoration validation
     displayDecorationThemes();
-    cout << "Choose table decoration theme: ";
-    cin >> themeChoice;
+    do {
+        cout << "Choose table decoration theme (1-3): ";
+        cin >> themeChoice;
+        if (cin.fail() || themeChoice < 1 || themeChoice > 3) {
+            cout << "Invalid theme choice!\n";
+            clearInput();
+            continue;
+        }
+        break;
+    } while (true);
+
     switch (themeChoice) {
     case 1:
         newBooking.decoTheme = "Classic";
@@ -89,16 +168,23 @@ void makeBooking() {
         newBooking.decoTheme = "Elegant";
         newBooking.decoCost = 200;
         break;
-    default:
-        newBooking.decoTheme = "None";
-        newBooking.decoCost = 0;
     }
 
-    cout << "Vendor Options for Decoration:\n";
-    cout << "1. Self-arranged (RM 0)\n";
-    cout << "2. Organizer-arranged (RM 300)\n";
-    cout << "Select vendor option: ";
-    cin >> vendorChoice;
+    // Vendor validation
+    do {
+        cout << "Vendor Options:\n";
+        cout << "1. Self-arranged (RM 0)\n";
+        cout << "2. Organizer-arranged (RM 300)\n";
+        cout << "Select vendor option (1-2): ";
+        cin >> vendorChoice;
+        if (cin.fail() || (vendorChoice != 1 && vendorChoice != 2)) {
+            cout << "Invalid vendor choice!\n";
+            clearInput();
+            continue;
+        }
+        break;
+    } while (true);
+
     if (vendorChoice == 1) {
         newBooking.vendorOption = "Self-arranged";
         newBooking.vendorCost = 0;
@@ -114,9 +200,13 @@ void makeBooking() {
     // Save to vector
     bookings.push_back(newBooking);
 
+    // Save immediately to file
+    saveBookingsToFile();
+
     // Show summary
     cout << "\nBooking Confirmed!\n";
-    cout << "Date: " << date << "\nVenue: " << venueNames[venue]
+    cout << "Date: " << date
+        << "\nVenue: " << venueNames[venue]
         << "\nTime Slot: " << timeSlots[slot]
         << "\nDecoration: " << newBooking.decoTheme << " (RM " << newBooking.decoCost << ")"
         << "\nVendor: " << newBooking.vendorOption << " (RM " << newBooking.vendorCost << ")"
@@ -124,6 +214,10 @@ void makeBooking() {
 }
 
 void showAllBookings() {
+    if (bookings.empty()) {
+        cout << "\nNo bookings yet.\n";
+        return;
+    }
     cout << "\nAll Bookings:\n";
     for (const Booking& b : bookings) {
         cout << "Date: " << b.date
@@ -137,6 +231,8 @@ void showAllBookings() {
 }
 
 int main() {
+    loadBookingsFromFile(); // Load existing bookings
+
     int choice;
     do {
         cout << "\n==== Event Booking & Logistics System ====\n";
@@ -145,6 +241,12 @@ int main() {
         cout << "0. Exit\n";
         cout << "Enter your choice: ";
         cin >> choice;
+
+        if (cin.fail()) {
+            cout << "Invalid input! Please enter a number.\n";
+            clearInput();
+            continue;
+        }
 
         switch (choice) {
         case 1:
