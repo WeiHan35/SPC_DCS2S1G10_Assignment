@@ -1,5 +1,4 @@
-﻿
-#include <iomanip>
+﻿#include <iomanip>
 #include <vector>
 #include <regex>
 #include <sstream>
@@ -68,7 +67,7 @@ void choice(vector<EventRegistration>& reg) {
     while (true) {
         if (!(cin >> c)) {  // 如果输入的不是数字
             cin.clear(); // 清除错误状态
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // 丢掉错误输入
+            cin.ignore(); // 丢掉错误输入
             cout << "Invalid input. Please enter a number (1-5).\n";
             continue; // 重新输入
         }
@@ -117,12 +116,18 @@ void addRegistration(vector<EventRegistration>& reg) {
             << r.packageType << ","
             << r.specialRequests << endl;
     }
+	clearScreen();
     cout << "Registration added successfully with ID: " << registration.registrationID << endl;
+	//output the added registration details
+	outputRegistration(registration);
+	cout << "Press enter key to continue....";
+    string enter;
+	getline(cin, enter);
 }
 
 void searchRegistrationByID(vector<EventRegistration>& reg) {
     clearScreen();
-    string id,enter;
+    string id, enter;
     cout << "Enter Registration ID to search: ";
     cin >> id;
     cin.ignore();
@@ -130,8 +135,8 @@ void searchRegistrationByID(vector<EventRegistration>& reg) {
         if (id == r.registrationID) {
             cout << "Registration found!\n";
             outputRegistration(r);
-			cout << "Press enter key to continue....";
-			getline(cin, enter);
+            cout << "Press enter key to continue....";
+            getline(cin, enter);
             return;
         }
     }
@@ -143,7 +148,7 @@ void searchRegistrationByID(vector<EventRegistration>& reg) {
 void deleteRegistrationByID(vector<EventRegistration>& reg) {
     clearScreen();
 
-    string id,enter;
+    string id, enter;
     cout << "Enter Registration ID to delete: ";
     cin >> id;
     cin.ignore();
@@ -151,8 +156,8 @@ void deleteRegistrationByID(vector<EventRegistration>& reg) {
         if (id == reg[i].registrationID) {
             cout << "Registration Found and Deleted:\n";
             outputRegistration(reg[i]);
-			cout << "Press enter key to continue....";
-			getline(cin, enter);
+            cout << "Press enter key to continue....";
+            getline(cin, enter);
             reg.erase(reg.begin() + i);
             ofstream outputFile("registrations.txt");
             for (const auto& r : reg) {
@@ -178,13 +183,13 @@ void rewriteToVector(vector<EventRegistration>& reg) {
 
     if (!inputFile) {
         // 文件不存在
-        cout << "File not found. Nothing to load." << endl;
+        //cout << "File not found. Nothing to load." << endl;
         return;
     }
 
     if (inputFile.peek() == ifstream::traits_type::eof()) {
         // 文件存在但为空
-        cout << "File is empty. Nothing to load." << endl;
+        //cout << "File is empty. Nothing to load." << endl;
         return;
     }
 
@@ -256,7 +261,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 
             cout << "Enter new Special Requests (" << r.specialRequests << "): ";
             getline(cin, input);
-            if (!input.empty()) r.specialRequests = input; 
+            if (!input.empty()) r.specialRequests = input;
 
             // 保存到文件
             ofstream outputFile("registrations.txt");
@@ -283,9 +288,13 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 // ===== Validation Functions =====
 string inputName(const string& prompt) {
     string name;
+
     regex pattern("^[A-Za-z ]+$");
     while (true) {
+
         cout << prompt;
+        cin.ignore();
+
         getline(cin, name);
         if (regex_match(name, pattern)) return name;
         cout << "Invalid name. Only letters and spaces allowed.\n";
@@ -345,7 +354,7 @@ string inputSpecialRequest() {
     string req;
     cout << "Enter any special requests (leave blank if none): ";
     getline(cin, req);
-    if (req=="")
+    if (req == "")
     {
         req = "None";
     }
