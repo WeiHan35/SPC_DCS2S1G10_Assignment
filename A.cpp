@@ -154,6 +154,7 @@ void displayRegistrationMenu() {
 	cout << "2. Search Registration" << endl;
 	cout << "3. Delete Registration" << endl;
 	cout << "4. Update Registration" << endl;
+	cout << "0. Back to Main Menu" << endl;
 	cout << "5. Exit" << endl;
 	cout << "Enter your choice: ";
 }
