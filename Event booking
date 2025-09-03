@@ -1,19 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <fstream>   // for file I/O
-#include <limits>    // for input validation
+#include <fstream>
+#include <limits>
 
 using namespace std;
-
-const int MAX_DATES = 31; // Dates 1 to 31
-const int MAX_VENUES = 5; // 5 venues
-const int MAX_SLOTS = 3;  // Morning, Afternoon, Night
-
-string timeSlots[MAX_SLOTS] = { "12pm-3pm", "4pm-7pm", "8pm-11pm" };
-string venueNames[MAX_VENUES] = { "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" };
-
-int bookingStatus[MAX_DATES + 1][MAX_VENUES][MAX_SLOTS] = { {{0}} }; 
 
 struct Booking {
     int date;
@@ -25,23 +16,21 @@ struct Booking {
     int vendorCost;
 };
 
-vector<Booking> bookings;
-
 void clearInput() {
     cin.clear();
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 }
 
-void displayVenues() {
+void displayVenues(const vector<string>& venueNames) {
     cout << "Available Venues:\n";
-    for (int i = 0; i < MAX_VENUES; i++) {
+    for (int i = 0; i < (int)venueNames.size(); i++) {
         cout << i + 1 << ". " << venueNames[i] << endl;
     }
 }
 
-void displayTimeSlots() {
+void displayTimeSlots(const vector<string>& timeSlots) {
     cout << "Available Time Slots:\n";
-    for (int i = 0; i < MAX_SLOTS; i++) {
+    for (int i = 0; i < (int)timeSlots.size(); i++) {
         cout << i + 1 << ". " << timeSlots[i] << endl;
     }
 }
@@ -54,7 +43,7 @@ void displayDecorationThemes() {
 }
 
 // Save bookings to file
-void saveBookingsToFile() {
+void saveBookingsToFile(const vector<Booking>& bookings) {
     ofstream outFile("bookings.txt");
     for (const Booking& b : bookings) {
         outFile << b.date << ","
@@ -69,9 +58,10 @@ void saveBookingsToFile() {
 }
 
 // Load bookings from file
-void loadBookingsFromFile() {
+void loadBookingsFromFile(vector<Booking>& bookings,
+    vector<vector<vector<int>>>& bookingStatus) {
     ifstream inFile("bookings.txt");
-    if (!inFile) return; // this is to prevent when no file inside
+    if (!inFile) return;
 
     Booking b;
     char comma;
@@ -83,22 +73,26 @@ void loadBookingsFromFile() {
         inFile.ignore();
 
         bookings.push_back(b);
-        bookingStatus[b.date][b.venue][b.slot] = 1; // restore booking status
+        bookingStatus[b.date][b.venue][b.slot] = 1;
     }
     inFile.close();
 }
 
-void makeBooking() {
+void makeBooking(vector<Booking>& bookings,
+    vector<vector<vector<int>>>& bookingStatus,
+    const vector<string>& venueNames,
+    const vector<string>& timeSlots,
+    int MAX_DATES) {
     int date, venue, slot;
     int themeChoice, vendorChoice;
     Booking newBooking;
 
     // Date validation
     do {
-        cout << "Enter booking date (1-31): ";
+        cout << "Enter booking date (1-" << MAX_DATES << "): ";
         cin >> date;
         if (cin.fail() || date < 1 || date > MAX_DATES) {
-            cout << "Invalid date! Please enter 1-31.\n";
+            cout << "Invalid date! Please enter 1-" << MAX_DATES << ".\n";
             clearInput();
             continue;
         }
@@ -106,12 +100,12 @@ void makeBooking() {
     } while (true);
 
     // Venue validation
-    displayVenues();
+    displayVenues(venueNames);
     do {
-        cout << "Select venue (1-" << MAX_VENUES << "): ";
+        cout << "Select venue (1-" << venueNames.size() << "): ";
         cin >> venue;
-        if (cin.fail() || venue < 1 || venue > MAX_VENUES) {
-            cout << "Invalid venue! Please enter between 1 and " << MAX_VENUES << ".\n";
+        if (cin.fail() || venue < 1 || venue >(int)venueNames.size()) {
+            cout << "Invalid venue! Please enter between 1 and " << venueNames.size() << ".\n";
             clearInput();
             continue;
         }
@@ -120,12 +114,12 @@ void makeBooking() {
     } while (true);
 
     // Slot validation
-    displayTimeSlots();
+    displayTimeSlots(timeSlots);
     do {
-        cout << "Select time slot (1-" << MAX_SLOTS << "): ";
+        cout << "Select time slot (1-" << timeSlots.size() << "): ";
         cin >> slot;
-        if (cin.fail() || slot < 1 || slot > MAX_SLOTS) {
-            cout << "Invalid slot! Please enter between 1 and " << MAX_SLOTS << ".\n";
+        if (cin.fail() || slot < 1 || slot >(int)timeSlots.size()) {
+            cout << "Invalid slot! Please enter between 1 and " << timeSlots.size() << ".\n";
             clearInput();
             continue;
         }
@@ -156,18 +150,9 @@ void makeBooking() {
     } while (true);
 
     switch (themeChoice) {
-    case 1:
-        newBooking.decoTheme = "Classic";
-        newBooking.decoCost = 100;
-        break;
-    case 2:
-        newBooking.decoTheme = "Rustic";
-        newBooking.decoCost = 150;
-        break;
-    case 3:
-        newBooking.decoTheme = "Elegant";
-        newBooking.decoCost = 200;
-        break;
+    case 1: newBooking.decoTheme = "Classic"; newBooking.decoCost = 100; break;
+    case 2: newBooking.decoTheme = "Rustic"; newBooking.decoCost = 150; break;
+    case 3: newBooking.decoTheme = "Elegant"; newBooking.decoCost = 200; break;
     }
 
     // Vendor validation
@@ -201,7 +186,7 @@ void makeBooking() {
     bookings.push_back(newBooking);
 
     // Save immediately to file
-    saveBookingsToFile();
+    saveBookingsToFile(bookings);
 
     // Show summary
     cout << "\nBooking Confirmed!\n";
@@ -213,7 +198,9 @@ void makeBooking() {
         << "\nTotal Cost: RM " << (newBooking.decoCost + newBooking.vendorCost) << "\n";
 }
 
-void showAllBookings() {
+void showAllBookings(const vector<Booking>& bookings,
+    const vector<string>& venueNames,
+    const vector<string>& timeSlots) {
     if (bookings.empty()) {
         cout << "\nNo bookings yet.\n";
         return;
@@ -231,7 +218,20 @@ void showAllBookings() {
 }
 
 int main() {
-    loadBookingsFromFile(); // Load existing bookings
+    const int MAX_DATES = 31;
+    const int MAX_VENUES = 5;
+    const int MAX_SLOTS = 3;
+
+    vector<string> timeSlots = { "12pm-3pm", "4pm-7pm", "8pm-11pm" };
+    vector<string> venueNames = { "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" };
+
+    // bookingStatus[date][venue][slot]
+    vector<vector<vector<int>>> bookingStatus(MAX_DATES + 1,
+        vector<vector<int>>(MAX_VENUES, vector<int>(MAX_SLOTS, 0)));
+
+    vector<Booking> bookings;
+
+    loadBookingsFromFile(bookings, bookingStatus);
 
     int choice;
     do {
@@ -250,10 +250,10 @@ int main() {
 
         switch (choice) {
         case 1:
-            makeBooking();
+            makeBooking(bookings, bookingStatus, venueNames, timeSlots, MAX_DATES);
             break;
         case 2:
-            showAllBookings();
+            showAllBookings(bookings, venueNames, timeSlots);
             break;
         case 0:
             cout << "Goodbye!\n";
