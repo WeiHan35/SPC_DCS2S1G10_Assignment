@@ -41,10 +41,11 @@ void displayMenu();
 void displayRegistrationMenu();
 void registrationChoice(vector<EventRegistration>& reg);
 void addRegistration(vector<EventRegistration>& reg);
-void searchRegistrationByID(vector<EventRegistration>& reg);
-void deleteRegistrationByID(vector<EventRegistration>& reg);
+void searchRegistration(vector<EventRegistration>& registrations);
+void deleteRegistration(vector<EventRegistration>& registrations);
 void rewriteToVector(vector<EventRegistration>& reg);
 void updateRegistrationByID(vector<EventRegistration>& reg);
+bool confirmAction(const string& prompt);
 // ===== Validation Functions =====
 void clearScreen();
 void outputRegistration(const EventRegistration& reg);
@@ -85,10 +86,32 @@ void saveBookingsToFile(const vector<Booking>& bookings);
 void loadBookingsFromFile(vector<Booking>& bookings,
 	vector<vector<vector<int>>>& bookingStatus);
 void processPayment(vector<EventRegistration>& reg, EventRegistration& currentReg, double totalAmountOfLogistic, int& cashCounter);
-
-
+void checkPaymentStatusByID(vector<EventRegistration>& reg, vector<Booking>& bookings);
+void printReceipt(const EventRegistration& reg, const Booking* booking);
+string getVenueName(int venueIndex);
+string getTimeSlotName(int slotIndex);
+double getPackageCost(const string& packageType);
 string checkPaid(bool paid);
 void saveRegistrationsToFile(const vector<EventRegistration>& reg);
+int getValidatedChoice(int min, int max, const string& prompt);
+string getRegistrationIdInput();
+EventRegistration* findRegistrationById(vector<EventRegistration>& reg, const string& id);
+string generateNewRegistrationId(const vector<EventRegistration>& reg);
+void handleRegistrationMenu(vector<EventRegistration>& registrations);
+void handleBookingMenu(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus);
+void handlePaymentStatusCheck(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings);
+void displayMainMenu();
+void displayRegistrationMenu();
+void displayBookingMenu();
+void displayRegistrationSummary(const EventRegistration& reg);
+string inputValidatedString(const string& prompt, const regex& pattern, const string& errorMsg);
+void loadRegistrationsFromFile(vector<EventRegistration>& registrations);
+EventRegistration parseRegistrationFromLine(const string& line);
+const Booking* findBookingByRegistrationId(const vector<Booking>& bookings, const string& id);
+EventRegistration* findRegistrationById(vector<EventRegistration>& reg, const string& id);
 int main() {
     vector<EventRegistration> reg;
     const int MAX_DATES = 31;
@@ -97,47 +120,166 @@ int main() {
 
     vector<string> timeSlots = { "12pm-3pm", "4pm-7pm", "8pm-11pm" };
     vector<string> venueNames = { "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" };
+	// Package costs
+	const double SURPRISE_PROPOSAL_COST = 1200.0;
+	const double ROMANTIC_DINNER_COST = 1500.0;
+	const double FAMILY_GATHERING_COST = 1500.0;
 
+	// Decoration costs
+	const double CLASSIC_DECO_COST = 100.0;
+	const double RUSTIC_DECO_COST = 150.0;
+	const double ELEGANT_DECO_COST = 200.0;
+	const double VENDOR_COST = 300.0;
     // bookingStatus[date][venue][slot]
     vector<vector<vector<int>>> bookingStatus(MAX_DATES + 1, vector<vector<int>>(MAX_VENUES, vector<int>(MAX_SLOTS, 0)));
 
     vector<Booking> bookings;
     int mainChoice;
-    rewriteToVector(reg); // Load existing registrations from file
+    loadRegistrationsFromFile(reg); // Use this instead
 	loadBookingsFromFile(bookings, bookingStatus); // Load existing bookings from file
 
-    while (true) {
-        clearScreen();
-        displayMenu();
-        cin >> mainChoice;
-        
-        if (cin.fail()) {
-            cout << "Invalid input! Please enter a number.\n";
-            clearInput();
-            continue;
-        }
-        
-        // Move the switch statement INSIDE the loop
-        switch (mainChoice) {
-        case 1:
-            clearScreen();
-            displayRegistrationMenu();
-            registrationChoice(reg);
-            break;
-        case 2:
-            booking(reg, bookings, bookingStatus, venueNames, timeSlots, MAX_DATES);
-            break;
-        case 0:
-            cout << "Exiting program." << endl;
-            return 0;
-        default:
-            cout << "Invalid choice. Try again." << endl;
-            continuefunc();
-            break;
-        }
-    }
+	while (true) {
+		clearScreen();
+		displayMainMenu();
+
+		int choice = getValidatedChoice(0, 3, "Enter your choice: ");
+
+		switch (choice) {
+		case 1:
+			handleRegistrationMenu(reg);
+			break;
+		case 2:
+			handleBookingMenu(reg, bookings, bookingStatus);
+			break;
+		case 3:
+			handlePaymentStatusCheck(reg, bookings);
+			break;
+		case 0:
+			cout << "Thank you for using Event Management System. Goodbye!\n";
+			return 0;
+		}
+	}
 
     return 0;
+}
+string generateNewRegistrationId(const vector<EventRegistration>& reg) {
+	return to_string(reg.size() + 1000);
+}
+void handleRegistrationMenu(vector<EventRegistration>& registrations) {
+	while (true) {
+		clearScreen();
+		displayRegistrationMenu();
+
+		int choice = getValidatedChoice(0, 4, "Enter your choice: ");
+
+		switch (choice) {
+		case 1: addRegistration(registrations); break;
+		case 2: searchRegistration(registrations); break;
+		case 3: deleteRegistration(registrations); break;
+		case 4: updateRegistrationByID(registrations); break;
+		case 0: return; // Back to main menu
+		}
+	}
+}
+void loadRegistrationsFromFile(vector<EventRegistration>& registrations) {
+	ifstream file("registrations.txt");
+	if (!file.is_open()) return;
+
+	registrations.clear();
+	string line;
+
+	while (getline(file, line)) {
+		if (line.empty()) continue;
+
+		EventRegistration reg = parseRegistrationFromLine(line);
+		registrations.push_back(reg);
+	}
+	file.close();
+}
+
+EventRegistration parseRegistrationFromLine(const string& line) {
+	EventRegistration reg;
+	stringstream ss(line);
+
+	getline(ss, reg.registrationID, ',');
+	getline(ss, reg.manName, ',');
+	getline(ss, reg.womanName, ',');
+	getline(ss, reg.phone, ',');
+	getline(ss, reg.email, ',');
+
+	string temp;
+	getline(ss, temp, ',');
+	reg.numberOfGuests = temp.empty() ? 0 : stoi(temp);
+
+	getline(ss, reg.packageType, ',');
+	getline(ss, reg.specialRequests, ',');
+	getline(ss, reg.paymentInfo.method, ',');
+
+	getline(ss, temp, ',');
+	reg.paymentInfo.paid = (temp == "Paid");
+
+	getline(ss, temp, ',');
+	reg.paymentInfo.amount = temp.empty() ? 0.0 : stod(temp);
+
+	return reg;
+}
+bool confirmAction(const string& message) {
+	char choice;
+	cout << message << " (y/n): ";
+	cin >> choice;
+	cin.ignore();
+	return (tolower(choice) == 'y');
+}
+
+const Booking* findBookingByRegistrationId(const vector<Booking>& bookings, const string& id) {
+	for (const auto& booking : bookings) {
+		if (booking.registrationID == id) {
+			return &booking;
+		}
+	}
+	return nullptr;
+}
+
+void handleBookingMenu(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus) {
+	while (true) {
+		clearScreen();
+		displayBookingMenu();
+
+		int choice = getValidatedChoice(0, 2, "Enter your choice: ");
+
+		switch (choice) {
+
+
+				case 1: booking(registrations, bookings, bookingStatus,
+			{ "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" },
+					{ "12pm-3pm", "4pm-7pm", "8pm-11pm" }, 31); break;
+				case 2: showAllBookings(bookings,
+					{ "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" },
+					{ "12pm-3pm", "4pm-7pm", "8pm-11pm" }); break;
+
+		case 0: return; // Back to main menu
+		}
+	}
+}
+
+void handlePaymentStatusCheck(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings) {
+	clearScreen();
+	cout << "=== Payment Status Check ===\n\n";
+
+	string id = getRegistrationIdInput();
+	EventRegistration* reg = findRegistrationById(registrations, id);
+
+	if (reg) {
+		const Booking* booking = findBookingByRegistrationId(bookings, id);
+		printReceipt(*reg, booking);
+	}
+	else {
+		cout << "No registration found with ID: " << id << "\n";
+	}
+	continuefunc();
 }
 void displayMenu() {
 	cout << "=============================\n";
@@ -145,17 +287,8 @@ void displayMenu() {
 	cout << "=============================\n";
 	cout << "1. Event Registration\n";
 	cout << "2. Event booking on dates and logistic\n";
+	cout << "3. Check payment status by ID\n";
 	cout << "0. Exit\n";
-	cout << "Enter your choice: ";
-}
-void displayRegistrationMenu() {
-	cout << "Event Registration System" << endl;
-	cout << "1. Add New Registration" << endl;
-	cout << "2. Search Registration" << endl;
-	cout << "3. Delete Registration" << endl;
-	cout << "4. Update Registration" << endl;
-	cout << "0. Back to Main Menu" << endl;
-	cout << "5. Exit" << endl;
 	cout << "Enter your choice: ";
 }
 
@@ -177,118 +310,124 @@ void saveRegistrationsToFile(const vector<EventRegistration>& reg) {
 	}
 	outputFile.close();
 }
-//choice function modified to include booking parameters
-void registrationChoice(vector<EventRegistration>& reg) {
-	int choice;
-	cin >> choice;
-	cin.ignore(); // clear newline from input buffer
-	rewriteToVector(reg); // load existing registrations from file
-	switch (choice) {
-	case 1:
-		addRegistration(reg);
-		break;
-	case 2:
-		searchRegistrationByID(reg);
-		break;
-	case 3:
-		deleteRegistrationByID(reg);
-		break;
-	case 4:
-		updateRegistrationByID(reg);
-		break;
-	case 5:
-		cout << "Exiting program." << endl;
-		exit(0);
-	default:
-		cout << "Invalid choice. Try again." << endl;
-		return;
-	}
-}
 
-
-void addRegistration(vector<EventRegistration>& reg) {
+void addRegistration(vector<EventRegistration>& registrations) {
 	clearScreen();
-	EventRegistration registration = inputRegistration();
-	int newID = reg.size() + 1001;
-	registration.registrationID = to_string(newID);
-	reg.push_back(registration);
-	string paid = checkPaid(registration.paymentInfo.paid);
-
-	ofstream outputFile("registrations.txt");
-	for (const auto& r : reg) {
-		outputFile << r.registrationID << ","
-			<< r.manName << ","
-			<< r.womanName << ","
-			<< r.phone << ","
-			<< r.email << ","
-			<< r.numberOfGuests << ","
-			<< r.packageType << ","
-			<< r.specialRequests << ","
-			<< r.paymentInfo.method << ","
-			<< paid << ","
-			<< r.paymentInfo.amount << endl;
-	}
-	clearScreen();
-	cout << "Registration added successfully with ID: " << registration.registrationID << endl;
-	//output the added registration details
-	outputRegistration(registration);
-	cout << "Press enter key to continue....";
-	string enter;
-	getline(cin, enter);
-}
-
-
-void searchRegistrationByID(vector<EventRegistration>& reg) {
-	clearScreen();
-	string id, enter;
-	cout << "Enter Registration ID to search: ";
-	cin >> id;
+	cout << "=== Add New Registration ===\n\n";
 	cin.ignore();
-	for (const auto& r : reg) {
-		if (id == r.registrationID) {
-			cout << "Registration found!\n";
-			outputRegistration(r);
-			cout << "Press enter key to continue....";
-			getline(cin, enter);
+	EventRegistration newReg = inputRegistration();
+	newReg.registrationID = generateNewRegistrationId(registrations);
+
+	registrations.push_back(newReg);
+	saveRegistrationsToFile(registrations);
+
+	cout << "\n✓ Registration successful! ID: " << newReg.registrationID << "\n";
+	displayRegistrationSummary(newReg);
+	continuefunc();
+}
+
+void displayMainMenu() {
+	cout << "========================================\n";
+	cout << "       Event Management System\n";
+	cout << "========================================\n";
+	cout << "1. Registration Management\n";
+	cout << "2. Booking & Logistics\n";
+	cout << "3. Check Payment Status\n";
+	cout << "0. Exit\n";
+	cout << "========================================\n";
+}
+
+void displayRegistrationMenu() {
+	cout << "========================================\n";
+	cout << "       Registration Management\n";
+	cout << "========================================\n";
+	cout << "1. Add New Registration\n";
+	cout << "2. Search Registration\n";
+	cout << "3. Delete Registration\n";
+	cout << "4. Update Registration\n";
+	cout << "0. Back to Main Menu\n";
+	cout << "========================================\n";
+}
+
+void displayBookingMenu() {
+	cout << "========================================\n";
+	cout << "        Booking & Logistics\n";
+	cout << "========================================\n";
+	cout << "1. Create New Booking\n";
+	cout << "2. View All Bookings\n";
+	cout << "0. Back to Main Menu\n";
+	cout << "========================================\n";
+}
+
+void displayRegistrationSummary(const EventRegistration& reg) {
+	const int WIDTH = 40;
+	cout << string(WIDTH, '=') << "\n";
+	cout << "         Registration Summary\n";
+	cout << string(WIDTH, '=') << "\n";
+	cout << left << setw(18) << "ID:" << reg.registrationID << "\n";
+	cout << left << setw(18) << "Couple:" << reg.manName << " & " << reg.womanName << "\n";
+	cout << left << setw(18) << "Phone:" << reg.phone << "\n";
+	cout << left << setw(18) << "Email:" << reg.email << "\n";
+	cout << left << setw(18) << "Guests:" << reg.numberOfGuests << "\n";
+	cout << left << setw(18) << "Package:" << reg.packageType << "\n";
+	cout << left << setw(18) << "Requests:" << reg.specialRequests << "\n";
+	cout << string(WIDTH, '=') << "\n";
+}
+void searchRegistration(vector<EventRegistration>& registrations) {
+	clearScreen();
+	cout << "=== Search Registration ===\n\n";
+
+	string id = getRegistrationIdInput();
+	EventRegistration* reg = findRegistrationById(registrations, id);
+
+	if (reg) {
+		cout << "✓ Registration found!\n";
+		displayRegistrationSummary(*reg);
+	}
+	else {
+		cout << "No registration found with ID: " << id << "\n";
+	}
+	continuefunc();
+}
+
+void deleteRegistration(vector<EventRegistration>& registrations) {
+	clearScreen();
+	cout << "=== Delete Registration ===\n\n";
+
+	string id = getRegistrationIdInput();
+
+	for (auto it = registrations.begin(); it != registrations.end(); ++it) {
+		if (it->registrationID == id) {
+			cout << "Registration to be deleted:\n";
+			displayRegistrationSummary(*it);
+
+			if (confirmAction("Are you sure you want to delete this registration?")) {
+				registrations.erase(it);
+				saveRegistrationsToFile(registrations);
+				cout << "✓ Registration deleted successfully!\n";
+			}
+			else {
+				cout << "✗ Deletion cancelled.\n";
+			}
+			continuefunc();
 			return;
 		}
 	}
-	cout << "No Registration found with this ID.\n";
-	cout << "Press enter key to continue....";
-	getline(cin, enter);
+
+	cout << "No registration found with ID: " << id << "\n";
+	continuefunc();
 }
 
-void deleteRegistrationByID(vector<EventRegistration>& reg) {
-	clearScreen();
-	string id, enter;
-	cout << "Enter Registration ID to delete: ";
-	cin >> id;
-	cin.ignore();
-	for (int i = 0; i < reg.size(); i++) {
-		if (id == reg[i].registrationID) {
-			cout << "Registration Found and Deleted:\n";
-			outputRegistration(reg[i]);
-			cout << "Press enter key to continue....";
-			getline(cin, enter);
-			reg.erase(reg.begin() + i);
-			saveRegistrationsToFile(reg); // Use the helper function
-			return;
-		}
-	}
-	cout << "No Registration found with this ID.\n";
-	cout << "Press enter key to continue....";
-	getline(cin, enter);
-}
 
 void rewriteToVector(vector<EventRegistration>& reg) {
 	ifstream inputFile("registrations.txt");
 
-	if (!inputFile) {
-		return;
-	}
-
+	// If file doesn't exist, nothing to load
+	if (!inputFile) return;
+	// Clear existing data
+	//if file empty, nothing to load
 	if (inputFile.peek() == ifstream::traits_type::eof()) {
-
+		inputFile.close();
 		return;
 	}
 
@@ -304,22 +443,23 @@ void rewriteToVector(vector<EventRegistration>& reg) {
 		getline(ss, r.womanName, ',');
 		getline(ss, r.phone, ',');
 		getline(ss, r.email, ',');
+
 		string guests;
 		getline(ss, guests, ',');
 		if (!guests.empty())
 			r.numberOfGuests = stoi(guests);
 		else
 			r.numberOfGuests = 0;
+
 		getline(ss, r.packageType, ',');
 		getline(ss, r.specialRequests, ',');
 		getline(ss, r.paymentInfo.method, ',');
 		// write the paymen into the vector from file
 		string paidStr;
 		getline(ss, paidStr, ',');
-		if (!paidStr.empty())
-			r.paymentInfo.paid = (paidStr == "Paid"); // Check for "Paid" string instead
-		else
-			r.paymentInfo.paid = false;
+
+		r.paymentInfo.paid = (paidStr == "Paid"); // Check for "Paid" string instead
+
 
 		string amountStr;
 		getline(ss, amountStr, ',');
@@ -380,21 +520,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 			if (!input.empty()) r.specialRequests = input;
 			string paid = checkPaid(r.paymentInfo.paid);
 			// 保存到文件
-			ofstream outputFile("registrations.txt");
-			for (const auto& x : reg) {
-				outputFile << x.registrationID << ","
-					<< x.manName << ","
-					<< x.womanName << ","
-					<< x.phone << ","
-					<< x.email << ","
-					<< x.numberOfGuests << ","
-					<< x.packageType << ","
-					<< x.specialRequests << ","
-					<< x.paymentInfo.method << ","
-					<< paid << ","
-					<< x.paymentInfo.amount << ","
-					<< endl;
-			}
+			saveRegistrationsToFile(reg); // Use the existing function instead
 			cout << "Registration updated successfully.\n";
 			return;
 		}
@@ -404,6 +530,35 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 	cout << "Press enter key to continue....";
 	getline(cin, enter);
 }
+string getRegistrationIdInput() {
+	string id;
+	cout << "Enter Registration ID: ";
+	cin >> id;
+	cin.ignore();
+	return id;
+}
+EventRegistration* findRegistrationById(vector<EventRegistration>& reg, const string& id) {
+	for (auto& r : reg) {
+		if (r.registrationID == id) {
+			return &r;
+		}
+	}
+	return nullptr;
+}
+int getValidatedChoice(int min, int max, const string& prompt) {
+	int choice;
+	while (true) {
+		cout << prompt;
+		cin >> choice;
+		if (cin.fail() || choice < min || choice > max) {
+			cout << "Invalid choice! Please enter a number between " << min << " and " << max << ".\n";
+			cin.clear();
+			cin.ignore(numeric_limits<streamsize>::max(), '\n');
+			continue;
+		}
+		return choice;
+	}
+}
 string checkPaid(bool paid) {
 	if (paid) {
 		return "Paid";
@@ -412,77 +567,64 @@ string checkPaid(bool paid) {
 }
 
 // ===== Validation Functions =====
-string inputName(const string& prompt) {
-	string name;
-
-	regex pattern("^[A-Za-z ]+$");
+string inputValidatedString(const string& prompt, const regex& pattern, const string& errorMsg) {
+	string input;
 	while (true) {
-
 		cout << prompt;
-		cin.ignore();
-
-		getline(cin, name);
-		if (regex_match(name, pattern)) return name;
-		cout << "Invalid name. Only letters and spaces allowed.\n";
+		getline(cin, input);
+		if (regex_match(input, pattern)) {
+			return input;
+		}
+		cout << errorMsg << "\n";
 	}
+}
+
+string inputName(const string& prompt) {
+	return inputValidatedString(prompt,
+		regex("^[A-Za-z ]+$"),
+		"Invalid name. Only letters and spaces allowed.");
 }
 
 string inputPhone() {
-	string phone;
-	regex pattern("^[0-9]{8,15}$");
-	while (true) {
-		cout << "Enter phone number: ";
-		getline(cin, phone);
-		if (regex_match(phone, pattern)) return phone;
-		cout << "Invalid phone number. Digits only (8–15).\n";
-	}
+	return inputValidatedString("Enter phone number: ",
+		regex("^[0-9]{8,15}$"),
+		"Invalid phone number. Must be 8-15 digits.");
 }
 
 string inputEmail() {
-	string email;
-	regex pattern(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)");
-	while (true) {
-		cout << "Enter email: ";
-		getline(cin, email);
-		if (regex_match(email, pattern)) return email;
-		cout << "Invalid email format. Try again.\n";
-	}
+	return inputValidatedString("Enter email: ",
+		regex(R"(^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$)"),
+		"Invalid email format.");
 }
 
 int inputGuests() {
-	string input;
 	int guests;
-	regex pattern("^[0-9]+$");
 	while (true) {
-		cout << "Enter number of guests: ";
-		getline(cin, input);
-		if (regex_match(input, pattern)) {
-			guests = stoi(input);
-			if (guests > 0 && guests <= 1000) return guests;
-		}
-		cout << "Invalid number of guests. Must be between 1–1000.\n";
-	}
-}
-
-string inputPackage() {
-	int pkg;
-	while (true) {
-		cout << "Choose a Package Type\n1. Surprise Proposal (Base: RM1200)\n2. Romantic Dinner(Base:RM1500)\n3. Family Gathering(Base:RM1500)\nEnter package type : ";
-
-		cin >> pkg;
-		if (cin.fail() || pkg < 1 || pkg > 3) {
-			cout << "Invalid package choice. Enter 1, 2, or 3.\n";
+		cout << "Enter number of guests (1-1000): ";
+		cin >> guests;
+		if (cin.fail() || guests < 1 || guests > 1000) {
+			cout << "Invalid number. Must be between 1 and 1000.\n";
 			cin.clear();
 			cin.ignore(numeric_limits<streamsize>::max(), '\n');
 			continue;
 		}
+		return guests;
+	}
+}
 
+string inputPackage() {
+	cout << "\nPackage Options:\n";
+	cout << "1. Surprise Proposal (RM 1200   )\n";
+	cout << "2. Romantic Dinner (RM 1500   )\n";
+	cout << "3. Family Gathering (RM 1500)\n";
 
-		if
-			(pkg == 1) return "Surprise Proposal";
-		else if (pkg == 2) return "Romantic Dinner";
-		else if (pkg == 3) return "Family Gathering";
+	int choice = getValidatedChoice(1, 3, "Select package: ");
 
+	switch (choice) {
+	case 1: return "Surprise Proposal";
+	case 2: return "Romantic Dinner";
+	case 3: return "Family Gathering";
+	default: return "Surprise Proposal"; // fallback
 	}
 }
 
@@ -854,14 +996,12 @@ void showAllBookings(const vector<Booking>& bookings,
 }
 
 void continuefunc() {
-	cin.clear();
 	cin.ignore();
 	cout << endl;
 	cout << "Press Enter to continue...";
 	cin.get();// wait for enter key
 	clearScreen();
 }
-
 void processPayment(vector<EventRegistration>& reg, EventRegistration& currentReg, double totalAmountOfLogistic, int& cashCounter) {
 	if (reg.empty()) {
 		cout << "No registrations found. Please register first.\n";
@@ -955,4 +1095,114 @@ void showAvailableSlots(const vector<vector<vector<int>>>& bookingStatus,
 		cout << "No available slots for date " << date << ". Please try a different date.\n";
 	}
 	cout << "\n";
+}
+
+// New printReceipt function
+void printReceipt(const EventRegistration& reg, const Booking* booking) {
+    const int WIDTH = 50;
+    
+    // Header
+    cout << string(WIDTH, '=') << "\n";
+    cout << setw(WIDTH/2 + 10) << "EVENT PROPOSAL MANAGEMENT" << "\n";
+    cout << setw(WIDTH/2 + 8) << "Payment Receipt" << "\n";
+    cout << string(WIDTH, '=') << "\n\n";
+    
+    // Registration Details
+    cout << "REGISTRATION DETAILS:\n";
+    cout << string(WIDTH, '-') << "\n";
+    cout << left << setw(20) << "Registration ID:" << reg.registrationID << "\n";
+    cout << left << setw(20) << "Couple Names:" << reg.manName << " & " << reg.womanName << "\n";
+    cout << left << setw(20) << "Phone:" << reg.phone << "\n";
+    cout << left << setw(20) << "Email:" << reg.email << "\n";
+    cout << left << setw(20) << "Guests:" << reg.numberOfGuests << " people\n";
+    cout << left << setw(20) << "Package:" << reg.packageType << "\n";
+    cout << left << setw(20) << "Special Requests:" << reg.specialRequests << "\n\n";
+    
+    // Booking Details (if exists)
+    if (booking) {
+        cout << "BOOKING DETAILS:\n";
+        cout << string(WIDTH, '-') << "\n";
+        cout << left << setw(20) << "Event Date:" << "Day " << booking->date << "\n";
+        cout << left << setw(20) << "Venue:" << getVenueName(booking->venue) << "\n";
+        cout << left << setw(20) << "Time Slot:" << getTimeSlotName(booking->slot) << "\n";
+        cout << left << setw(20) << "Decoration:" << booking->decoTheme << "\n";
+        cout << left << setw(20) << "Vendor Service:" << booking->vendorOption << "\n\n";
+    }
+    
+    // Payment Summary
+    cout << "PAYMENT SUMMARY:\n";
+    cout << string(WIDTH, '-') << "\n";
+    
+    // Calculate costs
+    double packageCost = getPackageCost(reg.packageType);
+    double decorationCost = booking ? booking->decoCost : 0.0;
+    double vendorCost = booking ? booking->vendorCost : 0.0;
+    double totalCost = reg.paymentInfo.amount;
+    
+    cout << left << setw(30) << "Package (" + reg.packageType + "):" 
+         << "RM " << right << setw(8) << fixed << setprecision(2) << packageCost << "\n";
+    
+    if (booking) {
+        if (decorationCost > 0) {
+            cout << left << setw(30) << "Decoration (" + booking->decoTheme + "):" 
+                 << "RM " << right << setw(8) << fixed << setprecision(2) << decorationCost << "\n";
+        }
+        if (vendorCost > 0) {
+            cout << left << setw(30) << "Vendor Service:" 
+                 << "RM " << right << setw(8) << fixed << setprecision(2) << vendorCost << "\n";
+        }
+    }
+    
+    cout << string(WIDTH, '-') << "\n";
+    cout << left << setw(30) << "TOTAL AMOUNT:" 
+         << "RM " << right << setw(8) << fixed << setprecision(2) << totalCost << "\n";
+    cout << string(WIDTH, '-') << "\n\n";
+    
+    // Payment Status
+    cout << "PAYMENT INFORMATION:\n";
+    cout << string(WIDTH, '-') << "\n";
+    cout << left << setw(20) << "Payment Method:" << reg.paymentInfo.method << "\n";
+    cout << left << setw(20) << "Payment Status:";
+    
+    if (reg.paymentInfo.paid) {
+        cout << " ✓ PAID\n";
+        cout << left << setw(20) << "Status:" << "Payment Completed\n";
+    } else {
+        cout << " PENDING\n";
+        if (reg.paymentInfo.method == "Cash") {
+            cout << left << setw(20) << "Status:" << "Cash payment on event day\n";
+        } else {
+            cout << left << setw(20) << "Status:" << "Payment processing...\n";
+        }
+    }
+    
+    // Footer
+    cout << "\n" << string(WIDTH, '=') << "\n";
+    cout << setw(WIDTH/2 + 8) << "Thank you for choosing us!" << "\n";
+    cout << setw(WIDTH/2 + 12) << "Have a wonderful celebration!" << "\n";
+    cout << string(WIDTH, '=') << "\n";
+}
+
+// Helper functions to replace the switch statements
+string getVenueName(int venueIndex) {
+    const vector<string> venues = {"Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge"};
+    if (venueIndex >= 0 && venueIndex < venues.size()) {
+        return venues[venueIndex];
+    }
+    return "Unknown Venue";
+}
+
+string getTimeSlotName(int slotIndex) {
+    const vector<string> timeSlots = {"12pm-3pm", "4pm-7pm", "8pm-11pm"};
+    if (slotIndex >= 0 && slotIndex < timeSlots.size()) {
+        return timeSlots[slotIndex];
+    }
+    return "Unknown Time";
+}
+
+double getPackageCost(const string& packageType) {
+    if (packageType == "Surprise Proposal") return 1200.0;
+    if (packageType == "Romantic Dinner") return 1500.0;
+    if (packageType == "Family Gathering") return 1500.0;
+    return 0.0;
 }
