@@ -110,7 +110,6 @@ void displayRegistrationSummary(const EventRegistration& reg);
 string inputValidatedString(const string& prompt, const regex& pattern, const string& errorMsg);
 void loadRegistrationsFromFile(vector<EventRegistration>& registrations);
 EventRegistration parseRegistrationFromLine(const string& line);
-bool confirmAction(const string& prompt);
 const Booking* findBookingByRegistrationId(const vector<Booking>& bookings, const string& id);
 EventRegistration* findRegistrationById(vector<EventRegistration>& reg, const string& id);
 int main() {
@@ -136,7 +135,7 @@ int main() {
 
     vector<Booking> bookings;
     int mainChoice;
-    rewriteToVector(reg); // Load existing registrations from file
+    loadRegistrationsFromFile(reg); // Use this instead
 	loadBookingsFromFile(bookings, bookingStatus); // Load existing bookings from file
 
 	while (true) {
@@ -241,30 +240,6 @@ const Booking* findBookingByRegistrationId(const vector<Booking>& bookings, cons
 	return nullptr;
 }
 
-EventRegistration createNewRegistration() {
-	EventRegistration reg;
-
-	cout << "Enter registration details:\n";
-	reg.manName = inputName("First partner name: ");
-	reg.womanName = inputName("Second partner name: ");
-	reg.phone = inputPhone();
-	reg.email = inputEmail();
-	reg.numberOfGuests = inputGuests();
-	reg.packageType = inputPackage();
-
-	cout << "Special requests (optional): ";
-	cin.ignore();
-	getline(cin, reg.specialRequests);
-	if (reg.specialRequests.empty()) {
-		reg.specialRequests = "None";
-	}
-
-	// Initialize payment info
-	double packageCost = getPackageCost(reg.packageType);
-	reg.paymentInfo = Payment{ "", false, packageCost };
-
-	return reg;
-}
 void handleBookingMenu(vector<EventRegistration>& registrations,
 	vector<Booking>& bookings,
 	vector<vector<vector<int>>>& bookingStatus) {
@@ -306,35 +281,6 @@ void handlePaymentStatusCheck(vector<EventRegistration>& registrations,
 	}
 	continuefunc();
 }
-void checkPaymentStatusByID(vector<EventRegistration>& reg, vector<Booking>& bookings) {
-    clearScreen();
-    string id;
-    cout << "Enter Registration ID to check payment status: ";
-    cin >> id;
-    cin.ignore();
-    
-    for (const auto& r : reg) {
-        if (id == r.registrationID) {
-            // Find associated booking
-            const Booking* associatedBooking = nullptr;
-            for (const auto& b : bookings) {
-                if (b.registrationID == r.registrationID) {
-                    associatedBooking = &b;
-                    break;
-                }
-            }
-            
-            printReceipt(r, associatedBooking);
-            cout << "\nPress Enter to continue...";
-            cin.get();
-            return;
-        }
-    }
-    
-    cout << "No Registration found with ID: " << id << "\n";
-    cout << "Press Enter to continue...";
-    cin.get();
-}
 void displayMenu() {
 	cout << "=============================\n";
 	cout << " Event Management System\n";
@@ -364,34 +310,6 @@ void saveRegistrationsToFile(const vector<EventRegistration>& reg) {
 	}
 	outputFile.close();
 }
-//choice function modified to include booking parameters
-void registrationChoice(vector<EventRegistration>& reg) {
-	int choice;
-	cin >> choice;
-	cin.ignore(); // clear newline from input buffer
-	rewriteToVector(reg); // load existing registrations from file
-	switch (choice) {
-	case 1:
-		addRegistration(reg);
-		break;
-	case 2:
-		searchRegistration(reg);
-		break;
-	case 3:
-		deleteRegistration(reg);
-		break;
-	case 4:
-		updateRegistrationByID(reg);
-		break;
-	case 5:
-		cout << "Exiting program." << endl;
-		exit(0);
-	default:
-		cout << "Invalid choice. Try again." << endl;
-		return;
-	}
-}
-
 
 void addRegistration(vector<EventRegistration>& registrations) {
 	clearScreen();
@@ -525,22 +443,23 @@ void rewriteToVector(vector<EventRegistration>& reg) {
 		getline(ss, r.womanName, ',');
 		getline(ss, r.phone, ',');
 		getline(ss, r.email, ',');
+
 		string guests;
 		getline(ss, guests, ',');
 		if (!guests.empty())
 			r.numberOfGuests = stoi(guests);
 		else
 			r.numberOfGuests = 0;
+
 		getline(ss, r.packageType, ',');
 		getline(ss, r.specialRequests, ',');
 		getline(ss, r.paymentInfo.method, ',');
 		// write the paymen into the vector from file
 		string paidStr;
 		getline(ss, paidStr, ',');
-		if (!paidStr.empty())
-			r.paymentInfo.paid = (paidStr == "Paid"); // Check for "Paid" string instead
-		else
-			r.paymentInfo.paid = false;
+
+		r.paymentInfo.paid = (paidStr == "Paid"); // Check for "Paid" string instead
+
 
 		string amountStr;
 		getline(ss, amountStr, ',');
