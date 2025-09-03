@@ -396,7 +396,7 @@ void registrationChoice(vector<EventRegistration>& reg) {
 void addRegistration(vector<EventRegistration>& registrations) {
 	clearScreen();
 	cout << "=== Add New Registration ===\n\n";
-
+	cin.ignore();
 	EventRegistration newReg = inputRegistration();
 	newReg.registrationID = generateNewRegistrationId(registrations);
 
@@ -504,12 +504,12 @@ void deleteRegistration(vector<EventRegistration>& registrations) {
 void rewriteToVector(vector<EventRegistration>& reg) {
 	ifstream inputFile("registrations.txt");
 
-	if (!inputFile) {
-		return;
-	}
-
+	// If file doesn't exist, nothing to load
+	if (!inputFile) return;
+	// Clear existing data
+	//if file empty, nothing to load
 	if (inputFile.peek() == ifstream::traits_type::eof()) {
-
+		inputFile.close();
 		return;
 	}
 
@@ -601,21 +601,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 			if (!input.empty()) r.specialRequests = input;
 			string paid = checkPaid(r.paymentInfo.paid);
 			// 保存到文件
-			ofstream outputFile("registrations.txt");
-			for (const auto& x : reg) {
-				outputFile << x.registrationID << ","
-					<< x.manName << ","
-					<< x.womanName << ","
-					<< x.phone << ","
-					<< x.email << ","
-					<< x.numberOfGuests << ","
-					<< x.packageType << ","
-					<< x.specialRequests << ","
-					<< x.paymentInfo.method << ","
-					<< paid << ","
-					<< x.paymentInfo.amount << ","
-					<< endl;
-			}
+			saveRegistrationsToFile(reg); // Use the existing function instead
 			cout << "Registration updated successfully.\n";
 			return;
 		}
