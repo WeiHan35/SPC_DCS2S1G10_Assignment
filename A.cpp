@@ -16,30 +16,32 @@ struct DateInfo {
 	int maxDays = 0;
 };
 struct Payment {
-	string method;
-	bool paid;
-	double amount;
+	string method = "";
+	bool paid = false;
+	double amount = 0.0;
 };
+
 struct EventRegistration {
-	string registrationID;
-	string manName;
-	string womanName;
-	string phone;
-	string email;
-	int numberOfGuests;
-	string packageType;
-	string specialRequests;
+	string registrationID = "";
+	string manName = "";
+	string womanName = "";
+	string phone = "";
+	string email = "";
+	int numberOfGuests = 0;
+	string packageType = "";
+	string specialRequests = "";
 	Payment paymentInfo;
 };
+
 struct Booking {
-	string registrationID; // Add this line
-	int date;
-	int venue;
-	int slot;
-	string decoTheme;
-	double decoCost;
-	string vendorOption;
-	int vendorCost;
+	string registrationID = "";
+	int date = 0;
+	int venue = 0;
+	int slot = 0;
+	string decoTheme = "";
+	double decoCost = 0.0;
+	string vendorOption = "";
+	int vendorCost = 0;
 };
 
 
@@ -70,12 +72,6 @@ bool hasExistingBooking(const vector<Booking>& bookings, const string& regID);
 void showAllBookings(const vector<Booking>& bookings,
 	const vector<string>& venueNames,
 	const vector<string>& timeSlots);
-void booking(vector<EventRegistration>& reg,
-	vector<Booking>& bookings,
-	vector<vector<vector<int>>>& bookingStatus,
-	const vector<string>& venueNames,
-	const vector<string>& timeSlots,
-	int MAX_DATES);
 string inputSpecialRequest();
 void clearInput();
 void displayVenues(const vector<string>& venueNames);
@@ -139,23 +135,13 @@ int main() {
 
     vector<string> timeSlots = { "12pm-3pm", "4pm-7pm", "8pm-11pm" };
     vector<string> venueNames = { "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" };
-	// Package costs
-	const double SURPRISE_PROPOSAL_COST = 1200.0;
-	const double ROMANTIC_DINNER_COST = 1500.0;
-	const double FAMILY_GATHERING_COST = 1500.0;
-
-	// Decoration costs
-	const double CLASSIC_DECO_COST = 100.0;
-	const double RUSTIC_DECO_COST = 150.0;
-	const double ELEGANT_DECO_COST = 200.0;
-	const double VENDOR_COST = 300.0;
+	
     // bookingStatus[date][venue][slot]
     vector<vector<vector<int>>> bookingStatus(MAX_DATES + 1, vector<vector<int>>(MAX_VENUES, vector<int>(MAX_SLOTS, 0)));
 
     vector<Booking> bookings;
     loadRegistrationsFromFile(reg); // Use this instead
 	loadBookingsFromFile(bookings, bookingStatus); // Load existing bookings from file
-
 	while (true) {
 		clearScreen();
 		displayMainMenu();
@@ -277,8 +263,8 @@ void handleBookingMenu(vector<EventRegistration>& registrations,
 		switch (choice) {
 
 
-				case 1: booking(registrations, bookings, bookingStatus,
-			{ "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" },
+				case 1: makeBooking(registrations, bookings, bookingStatus,
+					{ "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" },
 					{ "12pm-3pm", "4pm-7pm", "8pm-11pm" }, 31); break;
 				case 2: showAllBookings(bookings,
 					{ "Hall A", "Hall B", "Hall C", "Outdoor", "VIP Lounge" },
@@ -504,7 +490,7 @@ void rewriteToVector(vector<EventRegistration>& reg) {
 void updateRegistrationByID(vector<EventRegistration>& reg) {
 	clearScreen();
 
-	string id, enter;
+	string id;
 	cout << "Enter Registration ID to update: ";
 	cin >> id;
 	cin.ignore();
@@ -514,46 +500,114 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 			cout << "Registration Found:\n";
 			outputRegistration(r);
 
-			cout << "\nPress Enter to keep current value.\n";
+			cout << "\n=== Update Registration Details ===\n";
+			cout << "Press Enter to keep current value, or type 'y' to update:\n\n";
+
 			string input;
 
-			cout << "Enter new 1st Couple Name (" << r.manName << "): ";
+			// Update 1st Couple Name
+			cout << "Current 1st Groom-to-be: " << r.manName << "\n";
+			cout << "Update 1st couple name? (y/n): ";
 			getline(cin, input);
-			if (!input.empty()) r.manName = inputName("Enter 1st Couple Name: ");
+			if (!input.empty() && tolower(input[0]) == 'y') {
+				r.manName = inputName("Enter new 1st Groom-to-be name: ");
+				cout << "Name updated successfully!\n";
+			}
+			cout << "\n";
 
-			cout << "Enter new 2nd Couple Name (" << r.womanName << "): ";
+			// Update 2nd Couple Name
+			cout << "Current 2nd Bridge-to-be: " << r.womanName << "\n";
+			cout << "Update 2nd couple name? (y/n): ";
 			getline(cin, input);
-			if (!input.empty()) r.womanName = inputName("Enter 2nd Couple Name: ");
+			if (!input.empty() && tolower(input[0]) == 'y') {
+				r.womanName = inputName("Enter new 2nd Bridge-to-be name: ");
+				cout << "Name updated successfully!\n";
+			}
+			cout << "\n";
 
-			cout << "Enter new Phone (" << r.phone << "): ";
+			// Update Phone
+			cout << "Current Phone: " << r.phone << "\n";
+			cout << "Update phone number? (y/n): ";
 			getline(cin, input);
-			if (!input.empty()) r.phone = inputPhone();
+			if (!input.empty() && tolower(input[0]) == 'y') {
+				r.phone = inputPhone();
+				cout << "Phone updated successfully!\n";
+			}
+			cout << "\n";
 
-			cout << "Enter new Email (" << r.email << "): ";
+			// Update Email
+			cout << "Current Email: " << r.email << "\n";
+			cout << "Update email? (y/n): ";
 			getline(cin, input);
-			if (!input.empty()) r.email = inputEmail();
+			if (!input.empty() && tolower(input[0]) == 'y') {
+				r.email = inputEmail();
+				cout << "Email updated successfully!\n";
+			}
+			cout << "\n";
 
-			cout << "Enter new Number of Guests (" << r.numberOfGuests << "): ";
+			// Update Number of Guests
+			cout << "Current Number of Guests: " << r.numberOfGuests << "\n";
+			cout << "Update number of guests? (y/n): ";
 			getline(cin, input);
-			if (!input.empty()) r.numberOfGuests = inputGuests();
+			if (!input.empty() && tolower(input[0]) == 'y') {
+				r.numberOfGuests = inputGuests();
+				cout << "Number of guests updated successfully!\n";
+			}
+			cout << "\n";
 
-			cout << "Enter new Package (" << r.packageType << "): ";
+			// Update Package Type
+			cout << "Current Package: " << r.packageType << "\n";
+			cout << "Update package? (y/n): ";
 			getline(cin, input);
-			if (!input.empty()) { r.packageType = inputPackage(); }
+			if (!input.empty() && tolower(input[0]) == 'y') {
+				string oldPackage = r.packageType;
+				r.packageType = inputPackage();
+				
+				// Update package cost based on new package
+				if (r.packageType == "Surprise Proposal") {
+					r.paymentInfo.amount = 1200.0;
+				} else if (r.packageType == "Romantic Dinner") {
+					r.paymentInfo.amount = 1500.0;
+				} else if (r.packageType == "Family Gathering") {
+					r.paymentInfo.amount = 1500.0;
+				}
+				
+				cout << "Package updated from '" << oldPackage << "' to '" << r.packageType << "'!\n";
+			}
+			cout << "\n";
 
-			cout << "Enter new Special Requests (" << r.specialRequests << "): ";
+			// Update Special Requests
+			cout << "Current Special Requests: " << r.specialRequests << "\n";
+			cout << "Update special requests? (y/n): ";
 			getline(cin, input);
-			if (!input.empty()) r.specialRequests = input;
-			string paid = checkPaid(r.paymentInfo.paid);
-			saveRegistrationsToFile(reg); // Use the existing function instead
-			cout << "Registration updated successfully.\n";
+			if (!input.empty() && tolower(input[0]) == 'y') {
+				// Use a simple input for special requests since there's no validation function for it
+				cout << "Enter new special requests (leave blank for 'None'): ";
+				string newRequests;
+				getline(cin, newRequests);
+				if (newRequests.empty()) {
+					newRequests = "None";
+				}
+				r.specialRequests = newRequests;
+				cout << "Special requests updated successfully!\n";
+			}
+			cout << "\n";
+
+			// Save changes
+			saveRegistrationsToFile(reg);
+			cout << "=== Registration Updated Successfully! ===\n";
+
+			// Show updated registration
+			cout << "\nUpdated Registration:\n";
+			displayRegistrationSummary(r);
+
+			continuefunc();
 			return;
 		}
 	}
 
-	cout << "No Registration found with this ID.\n";
-	cout << "Press enter key to continue....";
-	getline(cin, enter);
+	cout << "No Registration found with ID: " << id << "\n";
+	continuefunc();
 }
 string getRegistrationIdInput() {
 	string id;
@@ -708,44 +762,7 @@ void clearScreen() {
 }
 
 
-void booking(vector<EventRegistration>& reg, vector<Booking>& bookings,
-	vector<vector<vector<int>>>& bookingStatus,
-	const vector<string>& venueNames,
-	const vector<string>& timeSlots,
-	int MAX_DATES) {
 
-	int choice;
-	do {
-		clearScreen();
-		cout << "\n==== Event Booking & Logistics System ====\n";
-		cout << "1. Make a Booking\n";
-		cout << "2. View All Bookings\n";
-		cout << "0. Exit\n";
-		cout << "Enter your choice: ";
-		cin >> choice;
-
-		if (cin.fail()) {
-			cout << "Invalid input! Please enter a number.\n";
-			clearInput();
-			continue;
-		}
-
-		switch (choice) {
-		case 1:
-			makeBooking(reg, bookings, bookingStatus, venueNames, timeSlots, MAX_DATES);
-			break;
-		case 2:
-			showAllBookings(bookings, venueNames, timeSlots);
-			break;
-		case 0:
-			cout << "Goodbye!\n";
-			break;
-		default:
-			cout << "Invalid choice.\n";
-		}
-
-	} while (choice != 0);
-}
 void clearInput() {
 	cin.clear();
 	cin.ignore();
@@ -890,6 +907,8 @@ void processPayment(vector<EventRegistration>& reg, EventRegistration& currentRe
 			currentReg.paymentInfo.amount = amount;
 			currentReg.paymentInfo.paid = true;
 			cout << "Payment successful!" << endl;
+			cin.ignore();
+			continuefunc();
 			break; // Exit the loop
 		}
 		else if (method == "fpx" || method == "2") {
@@ -898,6 +917,10 @@ void processPayment(vector<EventRegistration>& reg, EventRegistration& currentRe
 			currentReg.paymentInfo.amount = amount;
 			currentReg.paymentInfo.paid = true;
 			cout << "Payment successful!" << endl;
+			cin.ignore();
+
+			continuefunc();
+
 			break; // Exit the loop
 		}
 		else if (method == "cash" || method == "3") {
@@ -907,6 +930,10 @@ void processPayment(vector<EventRegistration>& reg, EventRegistration& currentRe
 			currentReg.paymentInfo.paid = false;
 			cashCounter++;
 			cout << "Cash payment registered!" << endl;
+			cin.ignore();
+
+			continuefunc();
+
 			break; // Exit the loop
 		}
 		else {
@@ -1169,18 +1196,20 @@ bool isDateAfterCurrent(int month, int year, int day) {
 DateInfo validateMonthYear() {
     DateInfo current = getCurrentDate();
     DateInfo selected;
+    const int MAX_YEAR = 2030; // Add year limit
     
     cout << "\n=== Select Event Date ===\n";
     cout << "Current date: " << current.month << "/" << current.year << "\n";
-    cout << "Please select a future date for your event.\n\n";
+    cout << "Please select a future date for your event.\n";
+    cout << "Available years: " << current.year << " - " << MAX_YEAR << "\n\n";
     
     while (true) {
-        // Get year
-        cout << "Enter year (" << current.year << " or later): ";
+        // Get year with upper limit
+        cout << "Enter year (" << current.year << " - " << MAX_YEAR << "): ";
         cin >> selected.year;
         
-        if (cin.fail() || selected.year < current.year) {
-            cout << "Invalid year! Must be " << current.year << " or later.\n";
+        if (cin.fail() || selected.year < current.year || selected.year > MAX_YEAR) {
+            cout << "Invalid year! Must be between " << current.year << " and " << MAX_YEAR << ".\n";
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             continue;
@@ -1337,7 +1366,7 @@ void makeBooking(vector <EventRegistration>& reg,
 		continuefunc();
 		return;
 	}
-
+	clearScreen();
 	cout << "\n=== Registration Details ===\n";
 	displayRegistrationSummary(*currentReg);
 	cout << "\nCreating proposal event booking for: " << currentReg->manName << " & " << currentReg->womanName << "\n\n";
