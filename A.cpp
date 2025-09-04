@@ -200,7 +200,6 @@ void handleRegistrationMenu(vector<EventRegistration>& registrations) {
 	while (true) {
 		clearScreen();
 		displayRegistrationMenu();
-
 		int choice = getValidatedChoice(0, 5, "Enter your choice: ");
 
 		switch (choice) {
@@ -278,7 +277,6 @@ void handleBookingMenu(vector<EventRegistration>& registrations,
 	while (true) {
 		clearScreen();
 		displayBookingMenu();
-
 		int choice = getValidatedChoice(0, 2, "Enter your choice: ");
 
 		switch (choice) {
@@ -300,7 +298,6 @@ void handlePaymentStatusCheck(vector<EventRegistration>& registrations,
 	vector<Booking>& bookings) {
 	clearScreen();
 	cout << "=== Payment Status Check ===\n\n";
-
 	string id = getRegistrationIdInput();
 	EventRegistration* reg = findRegistrationById(registrations, id);
 
@@ -468,7 +465,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 
 			// Update 1st Couple Name
 			cout << "Current 1st Groom-to-be: " << r.manName << "\n";
-			cout << "Update 1st couple name? (y/n): ";
+			cout << "Update 1st Groom-to-be name? (y/n): ";
 			getline(cin, input);
 			if (!input.empty() && tolower(input[0]) == 'y') {
 				r.manName = inputName("Enter new 1st Groom-to-be name: ");
@@ -478,7 +475,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 
 			// Update 2nd Couple Name
 			cout << "Current 2nd Bridge-to-be: " << r.womanName << "\n";
-			cout << "Update 2nd couple name? (y/n): ";
+			cout << "Update 2nd Bridge-to-be name? (y/n): ";
 			getline(cin, input);
 			if (!input.empty() && tolower(input[0]) == 'y') {
 				r.womanName = inputName("Enter new 2nd Bridge-to-be name: ");
@@ -538,6 +535,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 				cout << "Package updated from '" << oldPackage << "' to '" << r.packageType << "'!\n";
 			}
 			cout << "\n";
+
 
 			// Update Special Requests
 			cout << "Current Special Requests: " << r.specialRequests << "\n";
