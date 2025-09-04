@@ -1,4 +1,3 @@
-#include "EventMarketing.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -8,371 +7,485 @@
 #include <sstream>
 using namespace std;
 
-// Function to display the marketing menu
-void displayMarketingMenu() {
-    cout << "\n\n================================================================\n";
-    cout << "                     Event Marketing Module     ";
-    cout << "\n================================================================\n";
-    cout << "1. Add New Campaign\n";
-    cout << "2. View Campaigns\n";
-    cout << "3. Update Campaign\n";
-    cout << "4. Track Campaign Performance\n";
-    cout << "5. Save Campaigns\n";
-    cout << "6. Upload Existing Campaigns\n";
-    cout << "7. View & Customised Invitation Templates\n";
-    cout << "8. Exit\n";
+struct ProposalPlan{
+    string theme;
+    string coupleNames;
+    string date;
+    string time;
+    string venue;
+    string secretName;
+    string inviterName;
+    string inviterPhoneNumber;
+};
+
+void displayEventMarketingMenu();
+
+void displayProposalManagementMenu();
+void createNewProposalPlan(vector<ProposalPlan> &plans);
+bool isValidPhoneNumber(const string &inviterPhoneNumber);
+void viewProposalPlan(const vector<ProposalPlan> &plans);
+void editProposalDetails(vector<ProposalPlan> &plans);
+void deleteProposalPlan(vector<ProposalPlan> &plans);
+void saveProposalPlans(const vector<ProposalPlan> &plans, const string &filename);
+
+void displayInvitationTemplatesMenu();
+void viewAvailableTemplates(const vector<string> &templates);
+void customizeTemplate(string templateStr);
+void saveCustomizedTemplate(const string &content, const string &filename);
+
+bool isValidPhoneNumber(const string &inviterPhoneNumber){
+    if (inviterPhoneNumber.empty()) return false;
+
+    for (size_t i = 0; i < inviterPhoneNumber.length(); i++){
+        char c = inviterPhoneNumber[i];
+        // Allow digits, +, spaces, and hyphens连字符号
+        if (!isdigit(c) && c != '+' && c != ' ' && c != '-'){
+            return false;
+        }
+        if (c == '+' && i != 0){
+            return false; // '+' only allowed at the start
+        }
+    }
+    return true;
+}
+
+// ====================== Event Marketing Menu ======================
+void displayEventMarketingMenu(){
+    cout << "\n\n======================================================\n";
+    cout << "           Marriage Proposal Event Marketing\n";
+    cout << "======================================================\n";
+    cout << "1. Proposal Management\n";
+    cout << "2. Invitation Templates\n";
+    cout << "3. Back\n";
     cout << "Enter your choice: ";
 }
 
-// Function to add a new campaign with input validation
-void addNewCampaign(vector<MarketingCampaign>& campaigns) {
-    MarketingCampaign campaign;
-    cout << "Enter campaign name: ";
-    getline(cin, campaign.name);
-    while (campaign.name.empty()) {
-        cout << "Name cannot be empty. Enter campaign name: ";
-        getline(cin, campaign.name);
-    }
-    cout << "Enter campaign marketing type (Social Media/Email/Flyer): ";
-    getline(cin, campaign.type);
-    cout << "Enter start date (YYYY-MM-DD): ";
-    getline(cin, campaign.startDate);
-    cout << "Enter end date (YYYY-MM-DD): ";
-    getline(cin, campaign.endDate);
-    cout << "Enter budget: ";
-    while (!(cin >> campaign.budget) || campaign.budget <= 0) {
-        cout << "Budget must be a positive number. Enter budget: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    cin.ignore(); // Clear newline
-    campaign.status.reach = 0;
-    campaign.status.engagement = 0;
-    campaigns.push_back(campaign);
-    cout << "Campaign added successfully!\n";
+// ===================== Proposal Management Menu =====================
+void displayProposalManagementMenu(){
+    cout << "\n\n======================================================\n";
+    cout << "                  Proposal Management\n";
+    cout << "======================================================\n";
+    cout << "1. Create New Proposal Plan\n";
+    cout << "2. View Proposal Plans\n";
+    cout << "3. Edit Proposal Details\n";
+    cout << "4. Delete Proposal Plan\n";
+    cout << "5. Save Proposal Plan\n";
+    cout << "6. Back\n";
+    cout << "Enter your choice: ";
 }
 
-// Function to view all campaigns
-void viewCampaigns(const vector<MarketingCampaign>& campaigns) {
-    cout << "\n----- Campaigns List -----\n";
-    for (size_t i = 0; i < campaigns.size(); ++i) {
-        cout << i+1 << ". " << campaigns[i].name << " | Type: " << campaigns[i].type
-                  << " | Dates: " << campaigns[i].startDate << " to " << campaigns[i].endDate
-                  << " | Budget: RM" << fixed << setprecision(2) << campaigns[i].budget << "\n";
-        displayStatus(campaigns[i].status);
-    }
-    if (campaigns.empty()) cout << "No campaigns found.\n";
+// ===================== Invitation Templates Menu =====================
+void displayInvitationTemplatesMenu(){
+    cout << "\n\n======================================================\n";
+    cout << "                Invitation Templates\n";
+    cout << "======================================================\n";
+    cout << "1. View Available Templates\n";
+    cout << "2. Select & Customize Template\n";
+    cout << "3. Back\n";
+    cout << "Enter your choice: ";
 }
 
-// Function to update a campaign
-void updateCampaign(vector<MarketingCampaign>& campaigns) {
-    if (campaigns.empty()) {
-        cout << "No campaigns to update.\n";
+// ===================== Proposal Management Functions =====================
+void createNewProposalPlan(vector<ProposalPlan> &plans){
+    ProposalPlan proposalPlan;
+    cout << "\nEnter Proposal Theme Name/Title: ";
+    getline(cin, proposalPlan.theme);
+    while (proposalPlan.theme.empty()){
+        cout << "Theme cannot be empty. Enter proposal theme name/title: ";
+        getline(cin, proposalPlan.theme);
+    }
+    cout << "Enter couple names: ";
+    getline(cin, proposalPlan.coupleNames);
+    cout << "Enter date (DD/MM/YYYY): ";
+    getline(cin, proposalPlan.date);
+    cout << "Enter time (HH:MM): ";
+    getline(cin, proposalPlan.time);
+    cout << "Enter venue/location: ";
+    getline(cin, proposalPlan.venue);
+    cout << "Enter name of the person to keep it secret from: ";
+    getline(cin, proposalPlan.secretName);
+    cout << "Enter inviter name: ";
+    getline(cin, proposalPlan.inviterName);
+    cout << "Enter inviter phone number: ";
+    getline(cin, proposalPlan.inviterPhoneNumber);
+    while (proposalPlan.inviterPhoneNumber.empty() || !isValidPhoneNumber(proposalPlan.inviterPhoneNumber)){
+        cout << "Please enter a valid phone number (can include +, digits, spaces, hyphens): ";
+        getline(cin, proposalPlan.inviterPhoneNumber);
+    }
+    plans.push_back(proposalPlan);
+    cout << "Proposal plan added successfully!\n";
+}
+
+void viewProposalPlan(const vector<ProposalPlan> &plans){
+    cout << "\n----- Proposal Plans List -----\n";
+    cout << "Total Plans: " << plans.size() << "\n";
+    if (plans.empty()){
+        cout << "No proposal plans found.\n";
         return;
     }
-    viewCampaigns(campaigns);
-    cout << "Enter campaign number to update: ";
+    
+    for (size_t i = 0; i < plans.size(); ++i){
+        cout << "\n" << i + 1 << ". Theme: " << plans[i].theme 
+             << "\n   Couple Names: " << plans[i].coupleNames
+             << "\n   Date: " << plans[i].date 
+             << "\n   Time: " << plans[i].time 
+             << "\n   Venue: " << plans[i].venue
+             << "\n   Secret From: " << plans[i].secretName
+             << "\n   Inviter: " << plans[i].inviterName
+             << "\n   Phone: " << plans[i].inviterPhoneNumber << "\n";
+    }
+}
+
+void editProposalDetails(vector<ProposalPlan> &plans){
+    if (plans.empty()){
+        cout << "No plans to edit.\n";
+        return;
+    }
+    
+    viewProposalPlan(plans);
+    cout << "Enter proposal number to edit: ";
     size_t idx;
     cin >> idx;
     cin.ignore();
-    if (idx < 1 || idx > campaigns.size()) {
-        cout << "Invalid campaign number.\n";
+    
+    if (idx < 1 || idx > plans.size()){
+        cout << "Invalid proposal number.\n";
         return;
     }
-    MarketingCampaign& campaign = campaigns[idx-1];
-    cout << "Update campaign name (current: " << campaign.name << "): ";
-    getline(cin, campaign.name);
-    cout << "Update campaign marketing type (current: " << campaign.type << "): ";
-    getline(cin, campaign.type);
-    cout << "Update start date (current: " << campaign.startDate << "): ";
-    getline(cin, campaign.startDate);
-    cout << "Update end date (current: " << campaign.endDate << "): ";
-    getline(cin, campaign.endDate);
-    cout << "Update budget (current: RM" << campaign.budget << "): ";
-    while (!(cin >> campaign.budget) || campaign.budget <= 0) {
-        cout << "Budget must be a positive number. Enter budget: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    
+    ProposalPlan &plan = plans[idx - 1];
+    string input;
+    
+    cout << "Edit proposal theme name (current: " << plan.theme << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty()) plan.theme = input;
+    
+    cout << "Edit couple names (current: " << plan.coupleNames << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty()) plan.coupleNames = input;
+    
+    cout << "Edit date (current: " << plan.date << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty()) plan.date = input;
+    
+    cout << "Edit time (current: " << plan.time << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty()) plan.time = input;
+    
+    cout << "Edit venue/location (current: " << plan.venue << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty()) plan.venue = input;
+    
+    cout << "Edit secret name (current: " << plan.secretName << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty()) plan.secretName = input;
+    
+    cout << "Edit inviter name (current: " << plan.inviterName << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty()) plan.inviterName = input;
+    
+    cout << "Edit phone number (current: " << plan.inviterPhoneNumber << ", press enter to keep current): ";
+    getline(cin, input);
+    if (!input.empty() && isValidPhoneNumber(input)){
+    plan.inviterPhoneNumber = input;
+    }else if (!input.empty()){
+        cout << "Invalid phone number format. Keeping current value.\n";
     }
-    cin.ignore();
-    cout << "Campaign updated!\n";
+    cout << "Proposal plan updated!\n";
 }
 
-// Function to track campaign performance
-void trackCampaignPerformance(vector<MarketingCampaign>& campaigns) {
-    if (campaigns.empty()) {
-        cout << "No campaigns to track.\n";
+void deleteProposalPlan(vector<ProposalPlan> &plans){
+    if (plans.empty()){
+        cout << "No plans to delete.\n";
         return;
     }
-    viewCampaigns(campaigns);
-    cout << "Enter campaign number to track campaign performance: ";
+    
+    viewProposalPlan(plans);
+    cout << "Enter proposal number to delete: ";
     size_t idx;
     cin >> idx;
     cin.ignore();
-    if (idx < 1 || idx > campaigns.size()) {
-        cout << "Invalid campaign number.\n";
+    
+    if (idx < 1 || idx > plans.size()){
+        cout << "Invalid proposal number.\n";
         return;
     }
-    MarketingCampaign& campaign = campaigns[idx-1];
-    cout << "Enter reach (number of people who receive the invitation): ";
-    while (!(cin >> campaign.status.reach) || campaign.status.reach < 0) {
-        cout << "Reach must be non-negative. Enter reach: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    cout << "Enter engagement (number of people who interacted with the campaign): ";
-    while (!(cin >> campaign.status.engagement) || campaign.status.engagement < 0) {
-        cout << "Engagement must be non-negative. Enter engagement: ";
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    }
-    cin.ignore();
-    cout << "Status updated!\n";
+    
+    plans.erase(plans.begin() + (idx - 1));
+    cout << "Proposal plan deleted successfully!\n";
 }
 
-// Function to save campaigns to a file
-void saveCampaigns(const vector<MarketingCampaign>& campaigns, const string& filename) {
-    // Check if file is empty to write header only once
-    ifstream checkFile(filename);
-    bool hasHeader = false;
-    string firstLine;
-    if (getline(checkFile, firstLine)) {
-        if (firstLine.find("Campaign Name") != string::npos) hasHeader = true;
-    }
-    checkFile.close();
-
+void saveProposalPlans(const vector<ProposalPlan> &plans, const string &filename){
     ofstream outFile(filename, ios::trunc);
-    if (!outFile) {
+    if (!outFile){
         cout << "Error opening file for saving.\n";
         return;
     }
-    if (!hasHeader) {
-        outFile << left << setw(20) << "CAMPAIGN NAME"
-                << "|" << setw(22) << "CAMPAIGN MARKETING TYPE"
-                << "|" << setw(13) << "START DATE"
-                << "|" << setw(12) << "END DATE"
-                << "|" << setw(12) << "BUDGET"
-                << "|" << setw(8) << "REACH"
-                << "|" << setw(10) << "ENGAGEMENT"
+    
+    // Write header
+    outFile << left << setw(25) << "PROPOSAL THEME"
+            << "|" << setw(20) << "COUPLE NAMES"
+            << "|" << setw(15) << "DATE"
+            << "|" << setw(10) << "TIME"
+            << "|" << setw(30) << "VENUE"
+            << "|" << setw(20) << "SECRET FROM"
+            << "|" << setw(15) << "INVITER"
+            << "|" << setw(12) << "PHONE"
+            << "\n";
+    
+    // Add separator line
+    outFile << string(147, '-') << "\n";
+    
+    // Write data
+    for (const auto &plan : plans){
+        outFile << left << setw(25) << plan.theme
+                << "|" << setw(20) << plan.coupleNames
+                << "|" << setw(15) << plan.date
+                << "|" << setw(10) << plan.time
+                << "|" << setw(30) << plan.venue
+                << "|" << setw(20) << plan.secretName
+                << "|" << setw(15) << plan.inviterName
+                << "|" << setw(12) << plan.inviterPhoneNumber
                 << "\n";
     }
-    for (const auto& c : campaigns) {
-        outFile << left << setw(20) << c.name
-                << "|" << setw(23) << c.type
-                << "|" << setw(13) << c.startDate
-                << "|" << setw(12) << c.endDate
-                << "|" << setw(12) << fixed << setprecision(0) << c.budget
-                << "|" << setw(8) << c.status.reach
-                << "|" << setw(10) << c.status.engagement
-                << "\n";
-    }
+    
     outFile.close();
-    cout << "Campaigns saved to " << filename << "\n";
+    cout << "Proposal plans saved to " << filename << "\n";
 }
 
-// Invitation template samples
-const vector<string> defaultTemplates = {
-    // Template 1: Wedding Ceremony
-    "Template 1: Wedding Ceremony\n\n**********************************************\n              You're Invited!\n         Come celebrate love with us!\n\nDate: [Enter Date]\nVenue: [Enter Venue]\nTime: [Enter Time]\nSlogan: <Slogan>\n\nLet's make unforgettable memories together!\n**********************************************",
-    // Template 2: Fun & Festive
-    "Template 2: Fun & Festive\n\n===============================================\n      You're invited to join the celebration!\n                    <Slogan>\n\nDate: [Enter Date]\nVenue: [Enter Venue]\nTime: [Enter Time]\nTheme: <Theme>\n\nWe can't wait to have fun with you!\n===============================================",
-    // Template 3: Party
-    "Template 3: Party\n\n--------------------------------------------------\n               A Special Invitation\n              You are warmly invited!\n\nDate: [Enter Date]\nVenue: [Enter Venue]\nTime: [Enter Time]\nMessage: <Message>\n\nYour presence will make this day complete!\n--------------------------------------------------"
+// ===================== Invitation Templates =====================
+const vector<string> proposalTemplates = {
+    // Template 1: Classic Elegance
+    "Template 1: Classic Elegance\n"
+    "=============================================\n"
+    "        MARRIAGE PROPOSAL INVITATION\n"
+    "=============================================\n"
+    "    You are cordially invited to witness\n"    
+    "  a moment that will change my life forever.\n\n"
+    "Theme: [Theme]\n"
+    "Date: [Date]\n"
+    "Time: [Time]\n"
+    "Venue: [Venue]\n\n"
+    "Your presence will make this moment complete.\n"
+    "Please keep this a secret from [Secret]!\n"
+    "RSVP to [Inviter] ([Phone])\n"
+    "=============================================",
+    
+    // Template 2: Romantic Style
+    "Template 2: Romantic Style\n"
+    "**************************************************\n"
+    "               A NIGHT TO REMEMBER\n"
+    "**************************************************\n"
+    "    Under the stars, a question will be asked,\n"
+    "     and a new journey of love will begin...\n\n"
+    "Theme: [Theme]\n"
+    "Date: [Date]\n"
+    "Time: [Time]\n"
+    "Venue: [Venue]\n\n"
+    "We wish for you to share in this intimate surprise.\n"
+    "Shh... please keep it a secret from [Secret]!\n"
+    "Contact: [Inviter] ([Phone])\n"
+    "**************************************************",
+    
+    // Template 3: Modern Minimalist
+    "Template 3: Modern Minimalist\n"
+    "------------------------------------------------\n"
+    "      YOU'RE INVITED TO A MARRIAGE PROPOSAL\n"
+    "------------------------------------------------\n"
+    "  Join us for an unforgettable moment of love\n"
+    "as I ask the most important question of my life.\n\n"
+    "Theme: [Theme]\n"
+    "Date: [Date]\n"
+    "Time: [Time]\n"
+    "Venue: [Venue]\n\n"
+    "Your presence means the world.\n"
+    "Please do not tell [Secret] -> it's a surprise!\n"
+    "Reach me: [Inviter] ([Phone])\n"
+    "------------------------------------------------"
 };
 
-// Save templates to file
-void saveTemplates(const vector<string>& templates, const string& filename) {
-    ofstream outFile(filename);
-    if (!outFile) {
-        cout << "Error saving templates.\n";
-        return;
-    }
-    for (size_t i = 0; i < templates.size(); ++i) {
-        outFile << "Template " << (i+1) << ":\n" << templates[i] << "\n---\n";
-    }
-    outFile.close();
-}
-
-// Upload templates from file
-vector<string> UploadTemplates(const string& filename) {
-    ifstream inFile(filename);
-    vector<string> templates;
-    if (!inFile) {
-        return defaultTemplates;
-    }
-    string line, temp;
-    while (getline(inFile, line)) {
-        if (line.find("Template ") == 0) {
-            temp.clear();
-        } else if (line == "---") {
-            templates.push_back(temp);
-        } else {
-            temp += line + "\n";
-        }
-    }
-    inFile.close();
-    if (templates.empty()) return defaultTemplates;
-    return templates;
-}
-
-
-// View & Customize Templates Function
-void viewAndCustomizeTemplates(vector<string>& templates) {
-    // Side-by-side display
+// ===================== Invitation Template Functions =====================
+void viewAvailableTemplates(const vector<string> &templates){
     vector<vector<string>> lines(3);
     size_t maxLines = 0;
-    for (size_t i = 0; i < templates.size(); ++i) {
+    
+    for (size_t i = 0; i < templates.size(); ++i){
         istringstream iss(templates[i]);
         string line;
-        while (getline(iss, line)) {
+        while (getline(iss, line)){
             lines[i].push_back(line);
         }
-        if (lines[i].size() > maxLines) maxLines = lines[i].size();
+        if (lines[i].size() > maxLines)
+            maxLines = lines[i].size();
     }
-    cout << "\n===========================================================================================================================================================\n";
-    cout << "                                                                    Invitation Templates\n";
-    cout << "===========================================================================================================================================================\n\n";
-    for (size_t row = 0; row < maxLines; row++) {
+    
+    cout << "\n===============================================================================================================================================================\n";
+    cout << "                                                                   INVITATION TEMPLATES\n";
+    cout << "===============================================================================================================================================================\n\n";
+    
+    for (size_t row = 0; row < maxLines; row++){
         cout << left << setw(50) << (row < lines[0].size() ? lines[0][row] : "")
-             << " | " << left << setw(50) << (row < lines[1].size() ? lines[1][row] : "")
-             << " | " << left << setw(50) << (row < lines[2].size() ? lines[2][row] : "")
+             << " | " << left << setw(55) << (row < lines[1].size() ? lines[1][row] : "")
+             << " | " << left << setw(55) << (row < lines[2].size() ? lines[2][row] : "")
              << endl;
     }
-    // Prompt user to pick a template
-    int pick = 0;
-    do {
-        cout << "\nChoose a template (1, 2, or 3): ";
-        cin >> pick;
-        cin.ignore();
-        if (pick < 1 || pick > 3) cout << "Invalid choice. Try again.\n";
-    } while (pick < 1 || pick > 3);
-    // Prompt for customization
-    string date, venue, time, slogan, theme, message;
-    cout << "Enter Date (YYYY-MM-DD): "; getline(cin, date);
-    cout << "Enter Venue: "; getline(cin, venue);
-    cout << "Enter Time: "; getline(cin, time);
-    vector<string> customized;
-    if (pick == 1) {
-        cout << "Enter Slogan: "; getline(cin, slogan);
-        for (const auto& line : lines[0]) {
-            string l = line;
-            size_t pos;
-            if ((pos = l.find("[Enter Date]")) != string::npos) l.replace(pos, 12, date);
-            if ((pos = l.find("[Enter Venue]")) != string::npos) l.replace(pos, 13, venue);
-            if ((pos = l.find("[Enter Time]")) != string::npos) l.replace(pos, 12, time);
-            if ((pos = l.find("<Slogan>")) != string::npos) l.replace(pos, 8, slogan);
-            customized.push_back(l);
+}
+
+void customizeTemplate(string templateStr){
+    string theme, date, time, venue, secretName, inviterName, inviterPhoneNumber;
+    
+    cout << "\n----- Customize Your Invitation -----\n";
+    cout << "Theme: ";
+    getline(cin, theme);
+    cout << "Date: ";
+    getline(cin, date);
+    cout << "Time: ";
+    getline(cin, time);
+    cout << "Venue: ";
+    getline(cin, venue);
+    cout << "Keep this secret from: ";
+    getline(cin, secretName);
+    cout << "Inviter name: ";
+    getline(cin, inviterName);
+    cout << "Inviter Phone Number: ";
+    getline(cin, inviterPhoneNumber);
+
+    // Lambda function to replace all occurrences of a substring
+    auto replaceAll = [](string &str, const string &from, const string &to){
+        size_t start_pos = 0;
+        while ((start_pos = str.find(from, start_pos)) != string::npos){
+            str.replace(start_pos, from.length(), to);
+            start_pos += to.length();
         }
-    } else if (pick == 2) {
-        cout << "Enter Slogan: "; getline(cin, slogan);
-        cout << "Enter Theme: "; getline(cin, theme);
-        for (const auto& line : lines[1]) {
-            string l = line;
-            size_t pos;
-            if ((pos = l.find("[Enter Date]")) != string::npos) l.replace(pos, 12, date);
-            if ((pos = l.find("[Enter Venue]")) != string::npos) l.replace(pos, 13, venue);
-            if ((pos = l.find("[Enter Time]")) != string::npos) l.replace(pos, 12, time);
-            if ((pos = l.find("<Slogan>")) != string::npos) l.replace(pos, 8, slogan);
-            if ((pos = l.find("<Theme>")) != string::npos) l.replace(pos, 7, theme);
-            customized.push_back(l);
-        }
-    } else if (pick == 3) {
-        cout << "Enter Message: "; getline(cin, message);
-        for (const auto& line : lines[2]) {
-            string l = line;
-            size_t pos;
-            if ((pos = l.find("[Enter Date]")) != string::npos) l.replace(pos, 12, date);
-            if ((pos = l.find("[Enter Venue]")) != string::npos) l.replace(pos, 13, venue);
-            if ((pos = l.find("[Enter Time]")) != string::npos) l.replace(pos, 12, time);
-            if ((pos = l.find("<Message>")) != string::npos) l.replace(pos, 9, message);
-            customized.push_back(l);
-        }
-    }
-    // Show customized invitation
-    cout << "\nYour Customized Invitation:\n\n";
-    for (const auto& line : customized) cout << line << endl;
-    // Ask to save to file
+    };
+    
+    replaceAll(templateStr, "[Theme]", theme);
+    replaceAll(templateStr, "[Date]", date);
+    replaceAll(templateStr, "[Time]", time);
+    replaceAll(templateStr, "[Venue]", venue);
+    replaceAll(templateStr, "[Secret]", secretName);
+    replaceAll(templateStr, "[Inviter]", inviterName);
+    replaceAll(templateStr, "[Phone]", inviterPhoneNumber);
+
+    cout << "\nYour Customized Invitation:\n\n"
+         << templateStr << endl;
+
     char save;
     cout << "\nDo you want to save this invitation as a .txt file? (y/n): ";
     cin >> save;
     cin.ignore();
-    if (save == 'y' || save == 'Y') {
+    
+    if (save == 'y' || save == 'Y'){
         string filename;
         cout << "Enter filename (e.g., invitation.txt): ";
         getline(cin, filename);
+        
         ofstream outFile(filename);
-        if (!outFile) {
+        if (!outFile){
             cout << "Error saving file.\n";
-        } else {
-            for (const auto& line : customized) outFile << line << endl;
+        }else{
+            outFile << templateStr << endl;
             outFile.close();
             cout << "Invitation saved to " << filename << "\n";
         }
     }
 }
-void UploadCampaigns(vector<MarketingCampaign>& campaigns, const string& filename) {
-    ifstream inFile(filename);
-    if (!inFile) {
-        cout << "Error opening file for Uploading.\n";
+
+void saveCustomizedTemplate(const string &content, const string &filename){
+    ofstream outFile(filename);
+    if (!outFile){
+        cout << "Error saving file.\n";
         return;
     }
-    campaigns.clear();
-    string line;
-    bool firstLine = true;
-    while (getline(inFile, line)) {
-        if (firstLine) { firstLine = false; continue; } // Skip header
-        if (line.empty()) continue; // Skip empty lines
-        MarketingCampaign c;
-        size_t pos = 0, prev = 0;
-        int field = 0;
-        while ((pos = line.find('|', prev)) != string::npos) {
-            string value = line.substr(prev, pos - prev);
-            switch (field) {
-                case 0: c.name = value; break;
-                case 1: c.type = value; break;
-                case 2: c.startDate = value; break;
-                case 3: c.endDate = value; break;
-                case 4: c.budget = stod(value); break;
-                case 5: c.status.reach = stoi(value); break;
-            }
-            prev = pos + 1;
-            ++field;
-        }
-        // Last field: engagement
-        c.status.engagement = stoi(line.substr(prev));
-        campaigns.push_back(c);
-    }
-    inFile.close();
-    cout << "Campaigns Uploaded from " << filename << "\n";
+    
+    outFile << content << endl;
+    outFile.close();
+    cout << "Template saved to " << filename << "\n";
 }
 
-// Template function to display campaign status
-template <typename T>
-void displayStatus(const T& status) {
-    cout << "   Reach: " << status.reach << ", Engagement: " << status.engagement << "\n\n";
-}
-
-// Main function for testing (can be removed if integrating into main system)
-int main() {
-    vector<MarketingCampaign> campaigns;
-    int choice;
-    string filename = "marketing_campaigns.txt";
-        vector<string> templates = UploadTemplates("invitation_templates.txt");
-    do {
-        displayMarketingMenu();
-        cin >> choice;
+// ===================== Main Function =====================
+int main(){
+    vector<ProposalPlan> plans;
+    int mainChoice;
+    
+    cout << "Welcome to Marriage Proposal Event Management System!\n";
+    
+    do{
+        displayEventMarketingMenu();
+        cin >> mainChoice;
         cin.ignore();
-        switch (choice) {
-            case 1: addNewCampaign(campaigns); break;
-            case 2: viewCampaigns(campaigns); break;
-            case 3: updateCampaign(campaigns); break;
-            case 4: trackCampaignPerformance(campaigns); break;
-            case 5: saveCampaigns(campaigns, filename); break;
-            case 6: UploadCampaigns(campaigns, filename); break;
-            case 7: viewAndCustomizeTemplates(templates); break;
-            case 8: cout << "Exiting Event Marketing Module.\n"; break;
-            default: cout << "Invalid choice. Try again.\n";
+        
+        if (mainChoice == 1){
+            int proposalChoice;
+            do{
+                displayProposalManagementMenu();
+                cin >> proposalChoice;
+                cin.ignore();
+                
+                switch (proposalChoice){
+                case 1:
+                    createNewProposalPlan(plans);
+                    break;
+                case 2:
+                    viewProposalPlan(plans);
+                    break;
+                case 3:
+                    editProposalDetails(plans);
+                    break;
+                case 4:
+                    deleteProposalPlan(plans);
+                    break;
+                case 5:
+                    saveProposalPlans(plans, "proposal_plans.txt");
+                    break;
+                case 6:
+                    cout << "Returning to main menu...\n";
+                    break;
+                default:
+                    cout << "Invalid choice. Please try again.\n";
+                    break;
+                }
+            }while (proposalChoice != 6);
+        }else if (mainChoice == 2){
+            int invChoice;
+            do{
+                displayInvitationTemplatesMenu();
+                cin >> invChoice;
+                cin.ignore();
+                
+                switch (invChoice){
+                case 1:
+                    viewAvailableTemplates(proposalTemplates);
+                    break;
+                case 2:{
+                    int selected;
+                    cout << "Select template (1-3): ";
+                    cin >> selected;
+                    cin.ignore();
+
+                    if (selected >= 1 && selected <= 3){
+                        customizeTemplate(proposalTemplates[selected - 1]);
+                    }else{
+                        cout << "Invalid template selection. Please choose 1-3.\n";
+                    }
+                    break;
+                }
+                case 3:
+                    cout << "Returning to main menu...\n";
+                    break;
+                default:
+                    cout << "Invalid choice. Please try again.\n";
+                    break;
+                }
+            }while (invChoice != 3);
+        }else if (mainChoice == 3){
+            cout << "Exiting Event Marketing Menu...\n";
+        }else{
+            cout << "Invalid choice. Please try again.\n";
         }
-    } while (choice != 8);
+        
+    }while (mainChoice != 3);
+    
+    cout << "Thank you for using Marriage Proposal Event Management System!\n";
     return 0;
 }
