@@ -47,7 +47,9 @@ struct Booking {
 // ===== Main Function =====
 void displayMainMenu();
 void displayHelp();
-void handleRegistrationMenu(vector<EventRegistration>& registrations);
+void handleRegistrationMenu(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus);
 void handleBookingMenu(vector<EventRegistration>& registrations,
 	vector<Booking>& bookings,
 	vector<vector<vector<int>>>& bookingStatus);
@@ -57,7 +59,9 @@ void handlePaymentStatusCheck(vector<EventRegistration>& registrations,
 void displayRegistrationMenu();
 void addRegistration(vector<EventRegistration>& reg);
 void searchRegistration(vector<EventRegistration>& registrations);
-void deleteRegistration(vector<EventRegistration>& registrations);
+void deleteRegistration(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus);
 void showAllRegistrations(const vector<EventRegistration>& reg);
 void loadRegistrationsFromFile(vector<EventRegistration>& registrations);
 void updateRegistrationByID(vector<EventRegistration>& reg);
@@ -71,6 +75,9 @@ void displayRegistrationSummary(const EventRegistration& reg);
 string generateNewRegistrationId(const vector<EventRegistration>& reg);
 EventRegistration parseRegistrationFromLine(const string& line);
 string getRegistrationIdInput();
+void deleteBookingsByRegistrationId(vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus,
+	const string& registrationID);
 
 // ===== Registration Function Declarations =====
 string inputName(const string& prompt);
@@ -120,6 +127,15 @@ bool isLeapYear(int year);
 DateInfo validateMonthYear();
 int inputDateWithValidation(int MAX_DATES, const DateInfo& selectedDate);
 string getDayOfWeek(int day, int month, int year);
+// Marketing related functions
+void handleMarketingMenu(vector<EventRegistration>& registrations, vector<Booking>& bookings);
+void displayMarketingMenu();
+void viewInvitationTemplates();
+void createCustomInvitation(vector<EventRegistration>& registrations, vector<Booking>& bookings);
+string getTemplate(int templateChoice);
+bool hasExistingInvitation(const string& registrationID);
+void appendInvitationToFile(const string& invitation, const string& registrationID);
+void viewAllSavedInvitations();
 
 //Payment related functions
 void processPayment(vector<EventRegistration>& reg, EventRegistration& currentReg, double totalAmountOfLogistic, int& cashCounter);
@@ -135,6 +151,7 @@ bool confirmAction(const string& prompt);
 int getValidatedChoice(int min, int max, const string& prompt);
 string inputValidatedString(const string& prompt, const regex& pattern, const string& errorMsg);
 
+// Update your main() function switch statement
 int main() {
 	vector<EventRegistration> reg;
 	const int MAX_DATES = 31;
@@ -148,17 +165,18 @@ int main() {
 	vector<vector<vector<int>>> bookingStatus(MAX_DATES + 1, vector<vector<int>>(MAX_VENUES, vector<int>(MAX_SLOTS, 0)));
 
 	vector<Booking> bookings;
-	loadRegistrationsFromFile(reg); // Use this instead
-	loadBookingsFromFile(bookings, bookingStatus); // Load existing bookings from file
+	loadRegistrationsFromFile(reg);
+	loadBookingsFromFile(bookings, bookingStatus);
+
 	while (true) {
 		clearScreen();
 		displayMainMenu();
 
-		int choice = getValidatedChoice(0, 4, "Enter your choice: ");
+		int choice = getValidatedChoice(0, 5, "Enter your choice: ");  // Updated range
 
 		switch (choice) {
 		case 1:
-			handleRegistrationMenu(reg);
+			handleRegistrationMenu(reg, bookings, bookingStatus);
 			break;
 		case 2:
 			handleBookingMenu(reg, bookings, bookingStatus);
@@ -167,6 +185,9 @@ int main() {
 			handlePaymentStatusCheck(reg, bookings);
 			break;
 		case 4:
+			handleMarketingMenu(reg, bookings);  // NEW CASE
+			break;
+		case 5:  // Updated from case 4
 			clearScreen();
 
 			displayHelp();
@@ -183,7 +204,9 @@ int main() {
 string generateNewRegistrationId(const vector<EventRegistration>& reg) {
 	return to_string(reg.size() + 1000);
 }
-void handleRegistrationMenu(vector<EventRegistration>& registrations) {
+void handleRegistrationMenu(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus) {
 	while (true) {
 		clearScreen();
 		displayRegistrationMenu();
@@ -192,8 +215,8 @@ void handleRegistrationMenu(vector<EventRegistration>& registrations) {
 		switch (choice) {
 		case 1: addRegistration(registrations); break;
 		case 2: searchRegistration(registrations); break;
-		case  3: showAllRegistrations(registrations); break;
-		case 4: deleteRegistration(registrations); break;
+		case 3: showAllRegistrations(registrations); break;
+		case 4: deleteRegistration(registrations, bookings, bookingStatus); break; // Updated
 		case 5: updateRegistrationByID(registrations); break;
 		case 0: return; // Back to main menu
 		}
@@ -242,11 +265,23 @@ EventRegistration parseRegistrationFromLine(const string& line) {
 	return reg;
 }
 bool confirmAction(const string& message) {
-	char choice;
-	cout << message << " (y/n): ";
-	cin >> choice;
-	cin.ignore();
-	return (tolower(choice) == 'y');
+
+	//validate user input for y/n
+	while (true) {
+		string input;
+		cout << message << " (y/n): ";
+		cin >> input;
+		cin.ignore(); 
+		if (input == "y" || input == "Y") {
+			return true;
+		}
+		else if (input == "n" || input == "N") {
+			return false;
+		}
+		else {
+			cout << "Invalid input. Please enter 'y' or 'n'.\n";
+		}
+	}
 }
 
 const Booking* findBookingByRegistrationId(const vector<Booking>& bookings, const string& id) {
@@ -334,19 +369,6 @@ void addRegistration(vector<EventRegistration>& registrations) {
 	displayRegistrationSummary(newReg);
 	continuefunc();
 }
-
-void displayMainMenu() {
-	cout << "========================================\n";
-	cout << "       Propose Event Management System\n";
-	cout << "========================================\n";
-	cout << "1. Register for Customers\n";
-	cout << "2. Booking & Logistics for event\n";
-	cout << "3. Check Payment Status\n";
-	cout << "4. Help & Guidelines\n";
-	cout << "0. Exit\n";
-	cout << "========================================\n";
-}
-
 void displayRegistrationMenu() {
 	cout << "========================================\n";
 	cout << "       Registration Management\n";
@@ -401,7 +423,9 @@ void searchRegistration(vector<EventRegistration>& registrations) {
 	continuefunc();
 }
 
-void deleteRegistration(vector<EventRegistration>& registrations) {
+void deleteRegistration(vector<EventRegistration>& registrations,
+	vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus) {
 	clearScreen();
 	cout << "=== Delete Registration ===\n\n";
 
@@ -412,10 +436,37 @@ void deleteRegistration(vector<EventRegistration>& registrations) {
 			cout << "Registration to be deleted:\n";
 			displayRegistrationSummary(*it);
 
-			if (confirmAction("Are you sure you want to delete this registration?")) {
+			// Check if there are any bookings for this registration
+			bool hasBookings = hasExistingBooking(bookings, id);
+			if (hasBookings) {
+				cout << "\n*** WARNING ***\n";
+				cout << "This registration has associated bookings that will also be deleted!\n";
+
+				// Show booking details
+				for (const auto& booking : bookings) {
+					if (booking.registrationID == id) {
+						cout << "\nBooking to be deleted:\n";
+						cout << "- Date: " << formatDateWithDay(booking.date, 12, 2024) << "\n";
+						cout << "- Venue: " << getVenueName(booking.venue) << "\n";
+						cout << "- Time: " << getTimeSlotName(booking.slot) << "\n";
+						cout << "- Decoration: " << booking.decoTheme << "\n";
+						cout << "- Total Cost: RM " << (booking.decoCost + booking.vendorCost) << "\n";
+					}
+				}
+			}
+
+			if (confirmAction("Are you sure you want to delete this registration and all associated data?")) {
+				string regID = it->registrationID;
+
+				// Delete the registration
 				registrations.erase(it);
 				saveRegistrationsToFile(registrations);
 				cout << "Registration deleted successfully!\n";
+
+				// Delete associated bookings
+				deleteBookingsByRegistrationId(bookings, bookingStatus, regID);
+
+				cout << "All associated data has been removed from the system.\n";
 			}
 			else {
 				cout << "Deletion cancelled.\n";
@@ -428,7 +479,6 @@ void deleteRegistration(vector<EventRegistration>& registrations) {
 	cout << "No registration found with ID: " << id << "\n";
 	continuefunc();
 }
-
 
 
 
@@ -1138,6 +1188,7 @@ DateInfo getCurrentDate() {
 	DateInfo current;
 	current.year = currentTime.tm_year + 1900;  // tm_year is years since 1900
 	current.month = currentTime.tm_mon + 1;     // tm_mon is 0-11, so add 1
+	current.day = currentTime.tm_mday;
 	current.maxDays = getDaysInMonth(current.month, current.year);
 
 	return current;
@@ -1153,6 +1204,7 @@ int getDaysInMonth(int month, int year) {
 	if (month == 2 && isLeapYear(year)) {
 		return 29;
 	}
+
 	return daysInMonth[month - 1];
 }
 
@@ -1169,8 +1221,8 @@ bool isDateAfterCurrent(int month, int year, int day) {
 	if (month > current.month) return true;
 	if (month < current.month) return false;
 
-	// Same year and month - check day
-	return day > current.day; // FIX: use current.day instead of currentTime->tm_mday
+	// Same year and month - check day (must be AFTER current day, not equal)
+	return day > current.day;  // Changed from >= to > to exclude today
 }
 
 DateInfo validateMonthYear() {
@@ -1179,8 +1231,8 @@ DateInfo validateMonthYear() {
 	const int MAX_YEAR = 2030; // Add year limit
 
 	cout << "\n=== Select Event Date ===\n";
-	cout << "Current date: " << current.month << "/" << current.year << "\n";
-	cout << "Please select a future date for your event.\n";
+	cout << "Current date: " << current.day << "/" << current.month << "/" << current.year << "\n";
+	cout << "Please select a future date for your event (NOT today or past dates).\n";
 	cout << "Available years: " << current.year << " - " << MAX_YEAR << "\n\n";
 
 	while (true) {
@@ -1213,24 +1265,23 @@ DateInfo validateMonthYear() {
 			continue;
 		}
 
+		// For current month, ensure we can only select future days
+		if (selected.year == current.year && selected.month == current.month) {
+			cout << "Selected current month. Only future dates will be available.\n";
+		}
+
 		selected.maxDays = getDaysInMonth(selected.month, selected.year);
 
 		cout << "\nSelected: " << selected.month << "/" << selected.year
 			<< " (up to " << selected.maxDays << " days available)\n";
 
-		char confirm;
-		cout << "Confirm this selection? (y/n): ";
-		cin >> confirm;
-
-		if (tolower(confirm) == 'y') {
+		if (confirmAction("Confirm this selection")) {
 			break;
 		}
 	}
 
 	return selected;
 }
-
-// Update the existing inputDateWithValidation function
 int inputDateWithValidation(int MAX_DATES, const DateInfo& selectedDate) {
 	DateInfo current = getCurrentDate();
 	int date;
@@ -1242,19 +1293,26 @@ int inputDateWithValidation(int MAX_DATES, const DateInfo& selectedDate) {
 	cout << "\nAvailable dates for " << monthNames[selectedDate.month] << " " << selectedDate.year << ":\n";
 	cout << "========================================\n";
 
-	// Show first 10 dates as examples
-	for (int i = 1; i <= min(10, actualMaxDays); i++) {
-		// Skip dates that are in the past
+	// Show available future dates only
+	int validDatesShown = 0;
+	for (int i = 1; i <= actualMaxDays && validDatesShown < 10; i++) {
+		// Skip dates that are today or in the past
 		if (selectedDate.year == current.year &&
 			selectedDate.month == current.month &&
 			i <= current.day) {
 			continue;
 		}
+		validDatesShown++;
 		cout << i << ". " << formatDateWithDay(i, selectedDate.month, selectedDate.year) << "\n";
 	}
 
-	if (actualMaxDays > 10) {
-		cout << "... (and " << (actualMaxDays - 10) << " more dates available)\n";
+	if (validDatesShown == 0) {
+		cout << "No future dates available for this month. Please select a different month.\n";
+		return -1; // Return invalid date
+	}
+
+	if (actualMaxDays > validDatesShown + current.day) {
+		cout << "... (and more future dates available)\n";
 	}
 	cout << "========================================\n";
 
@@ -1268,9 +1326,16 @@ int inputDateWithValidation(int MAX_DATES, const DateInfo& selectedDate) {
 			continue;
 		}
 
-		// Check if the selected date is in the past
+		// Check if the selected date is today or in the past
 		if (!isDateAfterCurrent(selectedDate.month, selectedDate.year, date)) {
-			cout << "Cannot select a past date! Please choose a future date.\n";
+			if (selectedDate.year == current.year &&
+				selectedDate.month == current.month &&
+				date == current.day) {
+				cout << "Cannot select today's date! Please choose a future date.\n";
+			}
+			else {
+				cout << "Cannot select a past date! Please choose a future date.\n";
+			}
 			continue;
 		}
 
@@ -1315,10 +1380,6 @@ void makeBooking(vector <EventRegistration>& reg,
 
 	if (currentReg == nullptr) {
 		cout << "Registration ID not found! Please register first.\n";
-		cout << "\nIf you forgot your Registration ID:\n";
-		cout << "1. Go to Registration Management\n";
-		cout << "2. Choose 'Find Registration by Details'\n";
-		cout << "3. Search using your name, phone, or email\n";
 		continuefunc();
 		return;
 	}
@@ -1350,8 +1411,11 @@ void makeBooking(vector <EventRegistration>& reg,
 	cout << "\n=== Registration Details ===\n";
 	displayRegistrationSummary(*currentReg);
 	cout << "\nCreating propose event booking for: " << currentReg->manName << " & " << currentReg->womanName << "\n\n";
+	// Add this at the beginning of makeBooking function after finding the registration
+	cout << "\n*** IMPORTANT ***\n";
+	cout << "You can only book for future dates (not today or past dates).\n";
+	cout << "Make sure to plan your proposal event in advance!\n\n";
 
-	// Rest of the booking process remains the same...
 	DateInfo selectedDate = validateMonthYear();
 
 	int date, venue, slot;
@@ -1531,4 +1595,392 @@ bool hasExistingBooking(const vector<Booking>& bookings, const string& registrat
 		}
 	}
 	return false;
+}
+
+
+
+// Update your main menu in displayMainMenu()
+void displayMainMenu() {
+	cout << "========================================\n";
+	cout << "       Propose Event Management System\n";
+	cout << "========================================\n";
+	cout << "1. Register for Customers\n";
+	cout << "2. Booking & Logistics for event\n";
+	cout << "3. Check Payment Status\n";
+	cout << "4. Marketing & Invitations\n";  // NEW OPTION
+	cout << "5. Help & Guidelines\n";
+	cout << "0. Exit\n";
+	cout << "========================================\n";
+}
+
+void deleteBookingsByRegistrationId(vector<Booking>& bookings,
+	vector<vector<vector<int>>>& bookingStatus,
+	const string& registrationID) {
+
+	vector<Booking> deletedBookings; // To track what was deleted
+
+	// Find and remove bookings with matching registration ID
+	for (auto it = bookings.begin(); it != bookings.end(); ) {
+		if (it->registrationID == registrationID) {
+			// Free up the booking slot in bookingStatus
+			bookingStatus[it->date][it->venue][it->slot] = 0;
+
+			// Store deleted booking info for display
+			deletedBookings.push_back(*it);
+
+			// Remove the booking
+			it = bookings.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+
+	// Save updated bookings to file
+	if (!deletedBookings.empty()) {
+		saveBookingsToFile(bookings);
+
+		cout << "\n*** ASSOCIATED BOOKINGS DELETED ***\n";
+		for (const auto& deletedBooking : deletedBookings) {
+			cout << "- Deleted booking for date: " << formatDateWithDay(deletedBooking.date, 12, 2024) << "\n";
+			cout << "  Venue: " << getVenueName(deletedBooking.venue) << "\n";
+			cout << "  Time: " << getTimeSlotName(deletedBooking.slot) << "\n";
+		}
+		cout << "Total " << deletedBookings.size() << " booking(s) deleted.\n\n";
+	}
+}
+
+// Add these new functions at the end of your file
+void displayMarketingMenu() {
+	cout << "========================================\n";
+	cout << "       Marketing & Invitations\n";
+	cout << "========================================\n";
+	cout << "1. View Invitation Templates\n";
+	cout << "2. Create Custom Invitation\n";
+	cout << "3. View All Saved Invitations\n";
+	cout << "0. Back to Main Menu\n";
+	cout << "========================================\n";
+}
+
+void handleMarketingMenu(vector<EventRegistration>& registrations, vector<Booking>& bookings) {
+	while (true) {
+		clearScreen();
+		displayMarketingMenu();
+		int choice = getValidatedChoice(0, 3, "Enter your choice: ");
+
+		switch (choice) {
+		case 1: 
+			viewInvitationTemplates(); 
+			break;
+		case 2: 
+			createCustomInvitation(registrations, bookings); 
+			break;
+		case 3:
+			viewAllSavedInvitations();
+			break;
+		case 0: 
+			return; // Back to main menu
+		}
+	}
+}
+
+void viewInvitationTemplates() {
+	clearScreen();
+	cout << "=== Available Invitation Templates ===\n\n";
+
+	// Define templates as vectors of strings
+	vector<string> t1 = {
+		"Template 1: Classic Elegance",
+		"=============================================",
+		"        MARRIAGE PROPOSE INVITATION",
+		"=============================================",
+		"    You are cordially invited to witness",
+		"  a moment that will change my life forever.",
+		"",
+		"Theme: [Theme]",
+		"Date: [Date]",
+		"Time: [Time]",
+		"Venue: [Venue]",
+		"",
+		"Your presence will make this moment complete.",
+		"Please keep this a secret from [Secret Name]!",
+		"RSVP to [Couple Names] ([Phone])",
+		"============================================="
+	};
+
+	vector<string> t2 = {
+		"Template 2: Romantic Style",
+		"**************************************************",
+		"               A NIGHT TO REMEMBER",
+		"**************************************************",
+		"    Under the stars, a question will be asked,",
+		"     and a new journey of love will begin...",
+		"",
+		"Theme: [Theme]",
+		"Date: [Date]",
+		"Time: [Time]",
+		"Venue: [Venue]",
+		"",
+		"We wish for you to share in this intimate surprise.",
+		"Shh... please keep it a secret from [Secret Name]!",
+		"Contact: [Couple Names] ([Phone])",
+		"**************************************************"
+	};
+
+	vector<string> t3 = {
+		"Template 3: Modern Minimalist",
+		"------------------------------------------------",
+		"      YOU'RE INVITED TO A MARRIAGE PROPOSE",
+		"------------------------------------------------",
+		"  Join us for an unforgettable moment of love",
+		"as I ask the most important question of my life.",
+		"",
+		"Theme: [Theme]",
+		"Date: [Date]",
+		"Time: [Time]",
+		"Venue: [Venue]",
+		"",
+		"Your presence means the world.",
+		"Please do not tell [Secret Name] -> it's a surprise!",
+		"Reach me: [Couple Names] ([Phone])",
+		"------------------------------------------------"
+	};
+
+	// Find max lines
+	size_t lines = max({ t1.size(), t2.size(), t3.size() });
+
+	// Fixed column widths
+	size_t w1 = 50, w2 = 55, w3 = 50;
+
+	// Print row by row
+	for (size_t i = 0; i < lines; i++) {
+		cout << left << setw(w1) << (i < t1.size() ? t1[i] : "")
+			<< left << setw(w2) << (i < t2.size() ? t2[i] : "")
+			<< left << setw(w3) << (i < t3.size() ? t3[i] : "")
+			<< "\n";
+	}
+	cin.ignore();
+	continuefunc();
+}
+void createCustomInvitation(vector<EventRegistration>& registrations, vector<Booking>& bookings) {
+	clearScreen();
+	cout << "=== Create Custom Invitation ===\n\n";
+
+	// Get registration ID
+	string regID = getRegistrationIdInput();
+	EventRegistration* reg = findRegistrationById(registrations, regID);
+
+	if (!reg) {
+		cout << "Registration ID not found!\n";
+		continuefunc();
+		return;
+	}
+
+	// Find booking for this registration
+	const Booking* booking = findBookingByRegistrationId(bookings, regID);
+
+	if (!booking) {
+		cout << "No booking found for this registration.\n";
+		cout << "Please create a booking first before making invitations.\n";
+		continuefunc();
+		return;
+	}
+
+	// Check if this registration already has an invitation
+	if (hasExistingInvitation(regID)) {
+		cout << "*** INVITATION ALREADY EXISTS ***\n";
+		cout << "Registration ID " << regID << " already has an invitation template.\n";
+		cout << "Each registration can only create ONE invitation template.\n\n";
+
+		if (!confirmAction("Do you want to view the existing invitation file?")) {
+			continuefunc();
+			return;
+		}
+
+		// Show the existing file content
+		clearScreen();
+		cout << "=== Existing Invitation Templates ===\n\n";
+		ifstream file("invitation_template.txt");
+		if (file.is_open()) {
+			string line;
+			while (getline(file, line)) {
+				cout << line << "\n";
+			}
+			file.close();
+		}
+		continuefunc();
+		return;
+	}
+
+	// Show available templates
+	cout << "Available Templates:\n";
+	cout << "1. Classic Elegance\n";
+	cout << "2. Romantic Style\n";
+	cout << "3. Modern Minimalist\n";
+
+	int templateChoice = getValidatedChoice(1, 3, "Select template: ");
+
+	// Get template and customize it
+	string invitation = getTemplate(templateChoice);
+
+	// Replace placeholders with actual data
+	string coupleNames = reg->manName + " & " + reg->womanName;
+	string dateStr = formatDateWithDay(booking->date, 12, 2024);
+	string theme = reg->packageType + " - " + booking->decoTheme;
+
+	// Simple replace function
+	auto replaceAll = [&](const string& from, const string& to) {
+		size_t pos = 0;
+		while ((pos = invitation.find(from, pos)) != string::npos) {
+			invitation.replace(pos, from.length(), to);
+			pos += to.length();
+		}
+		};
+
+	// Find secret name (bride-to-be)
+	string secretName = reg->womanName;
+
+	// Replace all placeholders
+	replaceAll("[Theme]", theme);
+	replaceAll("[Date]", dateStr);
+	replaceAll("[Time]", getTimeSlotName(booking->slot));
+	replaceAll("[Venue]", getVenueName(booking->venue));
+	replaceAll("[Secret Name]", secretName);
+	replaceAll("[Couple Names]", coupleNames);
+	replaceAll("[Phone]", reg->phone);
+
+	// Show the customized invitation
+	clearScreen();
+	cout << "=== Your Custom Invitation ===\n\n";
+	cout << invitation << "\n\n";
+	appendInvitationToFile(invitation, regID);
+	cin.ignore();
+	continuefunc();
+}
+string getTemplate(int templateChoice) {
+	switch (templateChoice) {
+	case 1:
+		return "=============================================\n"
+			   "        MARRIAGE PROPOSE INVITATION\n"
+			   "=============================================\n"
+			   "    You are cordially invited to witness\n"
+			   "  a moment that will change my life forever.\n\n"
+			   "Theme: [Theme]\n"
+			   "Date: [Date]\n"
+			   "Time: [Time]\n"
+			   "Venue: [Venue]\n\n"
+			   "Your presence will make this moment complete.\n"
+			   "Please keep this a secret from [Secret Name]!\n"
+			   "RSVP to [Couple Names] ([Phone])\n"
+			   "=============================================";
+	case 2:
+		return "**************************************************\n"
+			"               A NIGHT TO REMEMBER\n"
+			"**************************************************\n"
+			"    Under the stars, a question will be asked,\n"
+			"     and a new journey of love will begin...\n\n"
+			"Theme: [Theme]\n"
+			"Date: [Date]\n"
+			"Time: [Time]\n"
+			"Venue: [Venue]\n\n"
+			"We wish for you to share in this intimate surprise.\n"
+			"Shh... please keep it a secret from [Secret Name]!\n"
+			"Contact: [Couple Names] ([Phone])\n"
+			"**************************************************";
+	case 3:
+		return "------------------------------------------------\n"
+			   "      YOU'RE INVITED TO A MARRIAGE PROPOSE\n"
+			   "------------------------------------------------\n"
+			   "  Join us for an unforgettable moment of love\n"
+			   "as I ask the most important question of my life.\n\n"
+			   "Theme: [Theme]\n"
+			   "Date: [Date]\n"
+			   "Time: [Time]\n"
+			   "Venue: [Venue]\n\n"
+			   "Your presence means the world.\n"
+			   "Please do not tell [Secret Name] -> it's a surprise!\n"
+			   "Reach me: [Couple Names] ([Phone])\n"
+			   "------------------------------------------------";
+	default:
+		return "Error: Invalid template choice";
+	}
+}
+bool hasExistingInvitation(const string& registrationID) {
+	ifstream file("invitation_template.txt");
+	if (!file.is_open()) {
+		return false; // File doesn't exist, so no existing invitation
+	}
+
+	string line;
+	while (getline(file, line)) {
+		// Look for the registration ID pattern in the file
+		if (line.find("Registration ID: " + registrationID) != string::npos) {
+			file.close();
+			return true;
+		}
+	}
+
+	file.close();
+	return false;
+}
+
+void appendInvitationToFile(const string& invitation, const string& registrationID) {
+	ofstream outFile("invitation_template.txt", ios::app); // Open in append mode
+	if (outFile.is_open()) {
+		// Add separator and registration info
+		outFile << "\n" << string(60, '=') << "\n";
+		outFile << "Registration ID: " << registrationID << "\n";
+		outFile << "Generated on: ";
+
+		// Add timestamp
+		time_t now = time(0);
+		tm timeinfo;
+		localtime_s(&timeinfo, &now);
+		outFile << (timeinfo.tm_year + 1900) << "/"
+			<< setfill('0') << setw(2) << (timeinfo.tm_mon + 1) << "/"
+			<< setfill('0') << setw(2) << timeinfo.tm_mday << " "
+			<< setfill('0') << setw(2) << timeinfo.tm_hour << ":"
+			<< setfill('0') << setw(2) << timeinfo.tm_min << "\n";
+		outFile << string(60, '=') << "\n";
+
+		// Add the invitation content
+		outFile << invitation << "\n";
+		outFile << string(60, '=') << "\n\n";
+		cout << "Successfully saved to invitation_template.txt\n";
+
+		outFile.close();
+	}
+	else
+	{
+		cout << "Error: Could not save invitation to file.\n";
+
+	}
+}
+void viewAllSavedInvitations() {
+	clearScreen();
+	cout << "=== All Saved Invitations ===\n\n";
+
+	ifstream file("invitation_template.txt");
+	if (!file.is_open()) {
+		cout << "No invitation file found. No invitations have been created yet.\n";
+		cin.ignore();
+		continuefunc();
+		return;
+	}
+
+	string line;
+	bool hasContent = false;
+
+	while (getline(file, line)) {
+		cout << line << "\n";
+		hasContent = true;
+	}
+
+	if (!hasContent) {
+		cout << "The invitation file is empty. No invitations have been created yet.\n";
+	}
+
+	file.close();
+	cin.ignore();
+	continuefunc();
 }
