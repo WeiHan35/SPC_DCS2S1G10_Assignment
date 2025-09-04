@@ -1,4 +1,0 @@
-CAMPAIGN NAME       |CAMPAIGN MARKETING TYPE|START DATE   |END DATE    |BUDGET      |REACH   |ENGAGEMENT
-Marriage Proposal   |Email                  |2025-09-01   |2025-11-01  |500000      |400     |388       
-Party Celebration   |Social Media           |2026-01-01   |2026-02-02  |10000       |200     |180       
-Dinner Party        |Social Media           |2025-09-09   |2025-09-09  |3000        |40      |30        
