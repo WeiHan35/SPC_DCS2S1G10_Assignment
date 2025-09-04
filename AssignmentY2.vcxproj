@@ -132,6 +132,7 @@
     <ClInclude Include="A.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="bookings.txt" />
     <Text Include="registrations.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,21 +1,4 @@
-1001,wong wai zhong,joan hau,01931562555,joanhoa@gmail.com,12,Basic,None,,Pending Payment,0,
-1002,aaaaa,aaaaae,324874222,cjdshf@gmail.com,212,Basic,Firework,Cash,Pending Payment,100,
-1003,johor,pahang,973792797,hjfjfj@gmail.com,6,romantic dinner,None,,Pending Payment,0,
-1004,fdsfds,dfds,332423323,sadsa@fe.efw,122,beach proposal,None,,Pending Payment,0,
-1005,vx,cvxv,16515651,ggsd@dvsd.dsv,132,private home proposal,None,,Pending Payment,0,
-1006,fbbf,bdff,5465166565,gbdb@gb.gfdf,55,beach proposal,None,,Pending Payment,0,
-1007,dvds,dvsdv,51651651,vsds@csd.sd,55,private home proposal,None,,Pending Payment,0,
-1008,fbf,dbbfd,56516566,dvdsv@svsd.dsd,555,private home proposal,None,,Pending Payment,0,
-1009,fbdfb,dbfb,54654545,sdds@dgv.dvs,55,private home proposal,None,,Pending Payment,0,
-1010,rfr,rgrr,54546543,gerg@vds.svd,22,private home proposal,None,,Pending Payment,0,
-1011,gnthn,rfv,165515133,eer@xscw.ewew,222,private home proposal,None,,Pending Payment,0,
-1012,bkjbj,jbj,332233333,sf@fewf.ewfe,222,Romantic Dinner,None,,Pending Payment,0,
-1013,bjfd,vfdf,545545456465,vdffd@dsfs.fs,100,Surprise Proposal,None,,Pending Payment,0,
-1014,gwegwe,eegewge,012222222,ewgeg@vgdv.dsvd,44,Surprise Proposal,None,,Pending Payment,0,
-1015,scds,ds,2222232323,hjhj@fgf.fdf,12,Surprise Proposal,dd,,Pending Payment,0,
-1016,dsvdsd,svd,232313212,dvds@dsvds.dsds,122,Surprise Proposal,None,,Pending Payment,0,
-1017,rer,egre,3211313212,rdger@ssgs.grsgr,4,Surprise Proposal,None,Cash,Pending Payment,1300,
-1018,aaaaa,aaaaaaa,555555555,aaaa@aa.aa,44,Romantic Dinner,None,Cash,Pending Payment,1600,
-1019,gsgs,gsdgs,321313211,vdss@cas.afae,123,Surprise Proposal,None,Cash,Pending Payment,1300,
-1020,ass,adsada,546545665,daa@fefe.ef,22,Surprise Proposal,None,Card,Pending Payment,1300,
-1021,dfb,bfb,215415464,hhgy@ffff.ff,5,Surprise Proposal,None,,Pending Payment,1200,
+1000,johor,pahang,545456465,dfgdf@svr.sgr,4,Surprise Proposal,None,Cash,Pending Payment,1900
+1001,jbkjbjbj,hvhvhv,55555555,hvuv@wef.efew,200,Romantic Dinner,None,FPX,Paid,1600
+1002,fbd,dbd,54546546,dbdf@grg.dgg,44,Surprise Proposal,None,FPX,Paid,1350
+1003,llll,ppppp,01127275569,yuehui@gmail.com,1000,Family Gathering,None,,Pending Payment,1500
