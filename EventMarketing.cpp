@@ -230,11 +230,11 @@ void saveProposalPlans(const vector<ProposalPlan> &plans, const string &filename
             << "|" << setw(30) << "VENUE"
             << "|" << setw(20) << "SECRET FROM"
             << "|" << setw(15) << "INVITER"
-            << "|" << setw(12) << "PHONE"
+            << "|" << setw(15) << "PHONE NUMBER"
             << "\n";
     
     // Add separator line
-    outFile << string(147, '-') << "\n";
+    outFile << string(156, '-') << "\n";
     
     // Write data
     for (const auto &plan : plans){
@@ -245,7 +245,7 @@ void saveProposalPlans(const vector<ProposalPlan> &plans, const string &filename
                 << "|" << setw(30) << plan.venue
                 << "|" << setw(20) << plan.secretName
                 << "|" << setw(15) << plan.inviterName
-                << "|" << setw(12) << plan.inviterPhoneNumber
+                << "|" << setw(15) << plan.inviterPhoneNumber
                 << "\n";
     }
     
