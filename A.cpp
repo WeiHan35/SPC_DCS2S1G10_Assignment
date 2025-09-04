@@ -135,19 +135,6 @@ bool confirmAction(const string& prompt);
 int getValidatedChoice(int min, int max, const string& prompt);
 string inputValidatedString(const string& prompt, const regex& pattern, const string& errorMsg);
 
-
-
-
-//string inputName();
-//string inputPhone();
-//string inputEmail();
-//int inputGuests();
-//string inputPackage();
-//string inputSpecialRequest();
-//string checkPaid();
-
-
-
 int main() {
 	vector<EventRegistration> reg;
 	const int MAX_DATES = 31;
@@ -609,7 +596,6 @@ string inputValidatedString(const string& prompt, const regex& pattern, const st
 	string input;
 	while (true) {
 		cout << prompt;
-		clearInput();
 		getline(cin, input);
 
 		//check if input matches the pattern and is not empty with only spaces and make the if statement more simple and understandable
