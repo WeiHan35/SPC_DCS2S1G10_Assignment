@@ -68,7 +68,6 @@ void showAllRegistrations(const vector<EventRegistration>& reg);
 void loadRegistrationsFromFile(vector<EventRegistration>& registrations);
 void updateRegistrationByID(vector<EventRegistration>& reg);
 void displayRegistrationIdReminder(const string& regID);
-void outputRegistration(const EventRegistration& reg);
 EventRegistration inputRegistration();
 void saveRegistrationsToFile(const vector<EventRegistration>& reg);
 
@@ -496,7 +495,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 	for (auto& r : reg) {
 		if (id == r.registrationID) {
 			cout << "Registration Found:\n";
-			outputRegistration(r);
+			displayRegistrationSummary(r);
 
 			cout << "\n=== Update Registration Details ===\n";
 			cout << "Press Enter to keep current value, or type 'y' to update:\n\n";
@@ -748,18 +747,7 @@ EventRegistration inputRegistration() {
 	return reg;
 }
 
-void outputRegistration(const EventRegistration& reg) {
-	cout << "----------------------------------------\n";
-	cout << "Registration ID: " << reg.registrationID << endl;
-	cout << "1st Couple Name: " << reg.manName << endl;
-	cout << "2nd Couple Name: " << reg.womanName << endl;
-	cout << "Phone Number: " << reg.phone << endl;
-	cout << "Email: " << reg.email << endl;
-	cout << "Number of Guests: " << reg.numberOfGuests << endl;
-	cout << "Package Type: " << reg.packageType << endl;
-	cout << "Special Requests: " << reg.specialRequests << endl;
-	cout << "----------------------------------------\n";
-}
+
 void clearScreen() {
 	system("cls"); // For Windows
 }
