@@ -136,7 +136,8 @@ string getTemplate(int templateChoice);
 bool hasExistingInvitation(const string& registrationID);
 void appendInvitationToFile(const string& invitation, const string& registrationID);
 void viewAllSavedInvitations();
-
+void deleteInvitationsByRegistrationId(const string& registrationID);
+void cleanupInvitationFile();
 //Payment related functions
 void processPayment(vector<EventRegistration>& reg, EventRegistration& currentReg, double totalAmountOfLogistic, int& cashCounter);
 void printReceipt(const EventRegistration& reg, const Booking* booking);
@@ -463,9 +464,9 @@ void deleteRegistration(vector<EventRegistration>& registrations,
 				saveRegistrationsToFile(registrations);
 				cout << "Registration deleted successfully!\n";
 
-				// Delete associated bookings
 				deleteBookingsByRegistrationId(bookings, bookingStatus, regID);
-
+				deleteInvitationsByRegistrationId(regID);
+				cleanupInvitationFile();
 				cout << "All associated data has been removed from the system.\n";
 			}
 			else {
@@ -1131,32 +1132,30 @@ void displayHelp() {
 	cout << "           HELP & GUIDANCE\n";
 	cout << "========================================\n\n";
 
-	cout << "1. Registration Management:\n";
-	cout << "   - Add New Registration: Input couple names, contact info, number of guests, package type, and special requests.\n";
-	cout << "   - Search Registration: Find a registration by its unique ID.\n";
-	cout << "   - View All Registrations: Display a list of all registrations.\n";
-	cout << "   - Delete Registration: Remove a registration by its ID.\n";
-	cout << "   - Update Registration: Modify details of an existing registration.\n\n";
-	cout << "2. Booking & Logistics:\n";
-	cout << "   - One registration = One propose event booking\n";
-	cout << "   - Each couple can only book one propose event\n";
-	cout << "   - Choose your date, venue, and time carefully\n";
-	cout << "   - Contact support if you need to change your booking\n\n";
-	cout << "   - Booking & Logistics:\n";
-	cout << "   - Make a Booking: Choose event date, venue, time slot, decoration theme, and vendor services.\n";
-	cout << "   - View All Bookings: Display all bookings with details.\n\n";
-	cout << "3. Payment Status Check:\n";
-	cout << "   - Check the payment status of a registration using its ID.\n\n";
-	cout << "4. Payment Methods:\n";
-	cout << "   - Bank Card: Enter your 16-digit card number for payment.\n";
-	cout << "   - FPX: Use online banking for payment.\n";
-	cout << "   - Cash: Pay in cash on the event day (payment status will be pending until then).\n\n";
 
-	cout << "5. Important Notes:\n";
-	cout << "   - Always remember your Registration ID for bookings and payment status checks.\n";
-	cout << "   - Ensure all information is accurate during registration to avoid issues later.\n";
-	cout << "   - Contact support for any issues or questions regarding your registration or booking.\n\n";
-	cout << "For further assistance, please contact our support team with number: +60123456789 ";
+
+	cout << "1. Registration:\n";
+	cout << "- To register for an event, select 'Add New Registration' from the Registration Management menu.\n";
+	cout << "- Fill in the required details such as couple names, contact info, number of guests, package type, and any special requests.\n";
+	cout << "- After registration, you will receive a unique Registration ID. Please keep this ID safe as it is required for booking.\n\n";
+	cout << "2. Booking & Logistics:\n";
+	cout << "- To book a venue and time slot for your event, go to the Booking & Logistics menu and select 'Create New Booking'.\n";
+	cout << "- You will need to enter your Registration ID to proceed with the booking.\n";
+	cout << "- Choose a future date, select an available venue and time slot, and pick your decoration theme and vendor services.\n\n";
+	cout << "3. Payment:\n";
+	cout << "- Payment can be made via Bank Card, FPX, or Cash. Choose your preferred method during the payment process.\n";
+	cout << "- If you choose Cash, payment will be collected on the event day.\n";
+	cout << "- Ensure that your payment status is updated to 'Paid' in your registration details.\n\n";
+	cout << "4. Viewing & Managing Registrations:\n";
+	cout << "- You can view all registrations, search for a specific registration by ID, update registration details, or delete a registration from the Registration Management menu.\n";
+	cout << "- Deleting a registration will also remove any associated bookings.\n\n";
+	cout << "5. Viewing & Managing Bookings:\n";
+	cout << "- View all bookings, search for bookings by Registration ID, update booking details, or delete a booking from the Booking & Logistics menu.\n";
+	cout << "- Deleting a booking will free up the selected venue and time slot for others to book.\n\n";
+	cout << "6. Generating Receipts:\n";
+	cout << "- You can generate a payment receipt for your registration and booking from the Registration Management menu.\n";
+	cout << "- The receipt will include all relevant details and a summary of charges.\n\n";
+	cout << "For further assistance, please contact our support team with number +60123456789.\n";
 	cin.ignore();
 
 }
@@ -1983,4 +1982,114 @@ void viewAllSavedInvitations() {
 	file.close();
 	cin.ignore();
 	continuefunc();
+}
+void deleteInvitationsByRegistrationId(const string& registrationID) {
+	ifstream inFile("invitation_template.txt");
+	if (!inFile.is_open()) {
+		return; // File doesn't exist, nothing to delete
+	}
+
+	// Read entire file content
+	string fileContent;
+	string line;
+	while (getline(inFile, line)) {
+		fileContent += line + "\n";
+	}
+	inFile.close();
+
+	// Create the pattern to search for this registration's invitation block
+	string searchPattern = "Registration ID: " + registrationID;
+
+	size_t startPos = fileContent.find(searchPattern);
+	if (startPos == string::npos) {
+		return; // Registration ID not found in invitations
+	}
+
+	// Find the start of the invitation block (look backwards for the opening separator)
+	size_t blockStart = startPos;
+
+	// Look for the separator line before the Registration ID
+	size_t separatorPos = fileContent.rfind("\n" + string(60, '=') + "\n", startPos);
+	if (separatorPos != string::npos) {
+		blockStart = separatorPos + 1; // Start after the newline
+	}
+	else {
+		// If no separator found before, check if we're at the beginning
+		blockStart = 0;
+	}
+
+	// Find the end of the invitation block (look for closing separator + empty lines)
+	size_t blockEnd = fileContent.find("\n" + string(60, '=') + "\n\n", startPos);
+	if (blockEnd != string::npos) {
+		blockEnd += 4; // Include the closing separator and empty lines (\n===\n\n)
+	}
+	else {
+		// If no closing separator found, take everything to the end
+		blockEnd = fileContent.length();
+	}
+
+	// Create new content without the deleted invitation
+	string newContent;
+	if (blockStart > 0) {
+		newContent = fileContent.substr(0, blockStart);
+	}
+	if (blockEnd < fileContent.length()) {
+		newContent += fileContent.substr(blockEnd);
+	}
+
+	// Clean up any extra empty lines at the beginning
+	while (newContent.length() > 0 && newContent[0] == '\n') {
+		newContent = newContent.substr(1);
+	}
+
+	// Write the updated content back to the file
+	ofstream outFile("invitation_template.txt");
+	if (outFile.is_open()) {
+		outFile << newContent;
+		outFile.close();
+		cout << "✓ Associated invitation template deleted.\n";
+	}
+	else {
+		cout << "✗ Error: Could not update invitation file.\n";
+	}
+}
+void cleanupInvitationFile() {
+	ifstream inFile("invitation_template.txt");
+	if (!inFile.is_open()) {
+		return;
+	}
+
+	vector<string> lines;
+	string line;
+
+	while (getline(inFile, line)) {
+		lines.push_back(line);
+	}
+	inFile.close();
+
+	if (lines.empty()) {
+		return;
+	}
+
+	// Remove leading empty lines
+	while (!lines.empty() && lines.front().empty()) {
+		lines.erase(lines.begin());
+	}
+
+	// Remove trailing empty lines
+	while (!lines.empty() && lines.back().empty()) {
+		lines.pop_back();
+	}
+
+	// Rewrite the cleaned file
+	ofstream outFile("invitation_template.txt");
+	if (outFile.is_open()) {
+		for (size_t i = 0; i < lines.size(); i++) {
+			outFile << lines[i];
+			if (i < lines.size() - 1) {
+				outFile << "\n";
+			}
+		}
+		outFile.close();
+	}
 }
