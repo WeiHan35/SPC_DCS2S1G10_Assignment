@@ -36,6 +36,8 @@ struct EventRegistration {
 struct Booking {
 	string registrationID = "";
 	int date = 0;
+	int year = 0;
+	int month = 0;
 	int venue = 0;
 	int slot = 0;
 	string decoTheme = "";
@@ -66,7 +68,6 @@ void showAllRegistrations(const vector<EventRegistration>& reg);
 void loadRegistrationsFromFile(vector<EventRegistration>& registrations);
 void updateRegistrationByID(vector<EventRegistration>& reg);
 void displayRegistrationIdReminder(const string& regID);
-void outputRegistration(const EventRegistration& reg);
 EventRegistration inputRegistration();
 void saveRegistrationsToFile(const vector<EventRegistration>& reg);
 
@@ -108,7 +109,7 @@ const Booking* findBookingByRegistrationId(const vector<Booking>& bookings, cons
 void showAvailableSlots(const vector<vector<vector<int>>>& bookingStatus,
 	const vector<string>& venueNames,
 	const vector<string>& timeSlots,
-	int date, int MAX_DATES);
+	int date, int month,int year);
 bool hasExistingBooking(const vector<Booking>& bookings, const string& regID);
 void displayTimeSlots(const vector<string>& timeSlots);
 void displayDecorationThemes();
@@ -447,7 +448,7 @@ void deleteRegistration(vector<EventRegistration>& registrations,
 				for (const auto& booking : bookings) {
 					if (booking.registrationID == id) {
 						cout << "\nBooking to be deleted:\n";
-						cout << "- Date: " << formatDateWithDay(booking.date, 12, 2024) << "\n";
+						cout << "- Date: " << formatDateWithDay(booking.date, booking.month, booking.year) << "\n";
 						cout << "- Venue: " << getVenueName(booking.venue) << "\n";
 						cout << "- Time: " << getTimeSlotName(booking.slot) << "\n";
 						cout << "- Decoration: " << booking.decoTheme << "\n";
@@ -494,7 +495,7 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 	for (auto& r : reg) {
 		if (id == r.registrationID) {
 			cout << "Registration Found:\n";
-			outputRegistration(r);
+			displayRegistrationSummary(r);
 
 			cout << "\n=== Update Registration Details ===\n";
 			cout << "Press Enter to keep current value, or type 'y' to update:\n\n";
@@ -746,18 +747,7 @@ EventRegistration inputRegistration() {
 	return reg;
 }
 
-void outputRegistration(const EventRegistration& reg) {
-	cout << "----------------------------------------\n";
-	cout << "Registration ID: " << reg.registrationID << endl;
-	cout << "1st Couple Name: " << reg.manName << endl;
-	cout << "2nd Couple Name: " << reg.womanName << endl;
-	cout << "Phone Number: " << reg.phone << endl;
-	cout << "Email: " << reg.email << endl;
-	cout << "Number of Guests: " << reg.numberOfGuests << endl;
-	cout << "Package Type: " << reg.packageType << endl;
-	cout << "Special Requests: " << reg.specialRequests << endl;
-	cout << "----------------------------------------\n";
-}
+
 void clearScreen() {
 	system("cls"); // For Windows
 }
@@ -796,6 +786,8 @@ void saveBookingsToFile(const vector<Booking>& bookings) {
 	for (const Booking& b : bookings) {
 		outFile << b.registrationID << ","  // Add this line
 			<< b.date << ","
+			<< b.month << ","
+			<< b.year << ","
 			<< b.venue << ","
 			<< b.slot << ","
 			<< b.decoTheme << ","
@@ -812,9 +804,7 @@ void loadBookingsFromFile(vector<Booking>& bookings,
 	ifstream inFile("bookings.txt");
 	if (!inFile) return;
 
-	// Add this line to clear existing bookings first
 	bookings.clear();
-	// Also clear the booking status
 	for (auto& dateSlots : bookingStatus) {
 		for (auto& venueSlots : dateSlots) {
 			fill(venueSlots.begin(), venueSlots.end(), 0);
@@ -824,7 +814,8 @@ void loadBookingsFromFile(vector<Booking>& bookings,
 	Booking b;
 	char comma;
 	while (getline(inFile, b.registrationID, ',') &&
-		inFile >> b.date >> comma >> b.venue >> comma >> b.slot >> comma) {
+		inFile >> b.date >> comma >> b.month >> comma >> b.year >> comma >>  // UPDATED
+		b.venue >> comma >> b.slot >> comma) {
 		getline(inFile, b.decoTheme, ',');
 		inFile >> b.decoCost >> comma;
 		getline(inFile, b.vendorOption, ',');
@@ -854,7 +845,7 @@ void showAllBookings(const vector<Booking>& bookings,
 	cout << "========================================\n";
 	for (const Booking& b : bookings) {
 		cout << "Registration ID: " << b.registrationID
-			<< "\nDate: " << formatDateWithDay(b.date, 12, 2024)  // Updated this line
+			<< "\nDate: " << formatDateWithDay(b.date, b.month, b.year) 
 			<< "\nVenue: " << venueNames[b.venue]
 			<< "\nTime: " << timeSlots[b.slot]
 			<< "\nDecoration: " << b.decoTheme
@@ -960,9 +951,9 @@ void processPayment(vector<EventRegistration>& reg, EventRegistration& currentRe
 void showAvailableSlots(const vector<vector<vector<int>>>& bookingStatus,
 	const vector<string>& venueNames,
 	const vector<string>& timeSlots,
-	int date, int MAX_DATES) {
+	int date, int month,int year) {
 
-	cout << "Available slots for " << formatDateWithDay(date, 12, 2024) << ":\n";
+	cout << "Available slots for " << formatDateWithDay(date, month, year) << ":\n";
 	bool hasAvailable = false;
 
 	for (int v = 0; v < (int)venueNames.size(); v++) {
@@ -975,7 +966,7 @@ void showAvailableSlots(const vector<vector<vector<int>>>& bookingStatus,
 	}
 
 	if (!hasAvailable) {
-		cout << "No available slots for " << formatDateWithDay(date, 12, 2024) << "\n";
+		cout << "No available slots for " << formatDateWithDay(date, month, year) << "\n";
 		cout << "Please try a different date.\n";
 	}
 	cout << "\n";
@@ -1005,7 +996,7 @@ void printReceipt(const EventRegistration& reg, const Booking* booking) {
 	if (booking) {
 		cout << "BOOKING DETAILS:\n";
 		cout << string(WIDTH, '-') << "\n";
-		cout << left << setw(20) << "Event Date:" << formatDateWithDay(booking->date, 12, 2024) << "\n";
+		cout << left << setw(20) << "Event Date:" << formatDateWithDay(booking->date, booking->month, booking->year) << "\n";
 		cout << left << setw(20) << "Venue:" << getVenueName(booking->venue) << "\n";
 		cout << left << setw(20) << "Time Slot:" << getTimeSlotName(booking->slot) << "\n";
 		cout << left << setw(20) << "Decoration:" << booking->decoTheme << "\n";
@@ -1393,7 +1384,7 @@ void makeBooking(vector <EventRegistration>& reg,
 		for (const auto& booking : bookings) {
 			if (booking.registrationID == regID) {
 				cout << "Your existing booking:\n";
-				cout << "Date: " << formatDateWithDay(booking.date, 12, 2024) << "\n";
+				cout << "Date: " << formatDateWithDay(booking.date, booking.month, booking.year) << "\n";
 				cout << "Venue: " << venueNames[booking.venue] << "\n";
 				cout << "Time: " << timeSlots[booking.slot] << "\n";
 				cout << "Decoration: " << booking.decoTheme << "\n";
@@ -1458,8 +1449,7 @@ void makeBooking(vector <EventRegistration>& reg,
 				<< " at " << timeSlots[slotIndex] << ".\n";
 			cout << "Please choose a different venue or time slot.\n\n";
 
-			showAvailableSlots(bookingStatus, venueNames, timeSlots, date, MAX_DATES);
-			continue;
+			showAvailableSlots(bookingStatus, venueNames, timeSlots, date, selectedDate.month, selectedDate.year);
 		}
 
 		break;
@@ -1471,6 +1461,8 @@ void makeBooking(vector <EventRegistration>& reg,
 	newBooking.date = date;
 	newBooking.venue = venue;
 	newBooking.slot = slot;
+	newBooking.month = selectedDate.month;
+	newBooking.year = selectedDate.year;
 
 	// Decoration validation
 	displayDecorationThemes();
@@ -1522,7 +1514,7 @@ void makeBooking(vector <EventRegistration>& reg,
 	// Show booking confirmation
 	cout << "\n*** PROPOSE EVENT BOOKING CONFIRMED ***\n";
 	cout << "Registration ID: " << regID << "\n";
-	cout << "Date: " << formatDateWithDay(date, 12, 2024)
+	cout << "Date: " << formatDateWithDay(date, selectedDate.month, selectedDate.year)
 		<< "\nVenue: " << venueNames[venue]
 		<< "\nTime Slot: " << timeSlots[slot]
 		<< "\nDecoration: " << newBooking.decoTheme << " (RM " << newBooking.decoCost << ")"
@@ -1641,7 +1633,7 @@ void deleteBookingsByRegistrationId(vector<Booking>& bookings,
 
 		cout << "\n*** ASSOCIATED BOOKINGS DELETED ***\n";
 		for (const auto& deletedBooking : deletedBookings) {
-			cout << "- Deleted booking for date: " << formatDateWithDay(deletedBooking.date, 12, 2024) << "\n";
+			cout << "- Deleted booking for date: " << formatDateWithDay(deletedBooking.date, deletedBooking.month, deletedBooking.year) << "\n";
 			cout << "  Venue: " << getVenueName(deletedBooking.venue) << "\n";
 			cout << "  Time: " << getTimeSlotName(deletedBooking.slot) << "\n";
 		}
@@ -1824,7 +1816,7 @@ void createCustomInvitation(vector<EventRegistration>& registrations, vector<Boo
 
 	// Replace placeholders with actual data
 	string coupleNames = reg->manName + " & " + reg->womanName;
-	string dateStr = formatDateWithDay(booking->date, 12, 2024);
+	string dateStr = formatDateWithDay(booking->date, booking->month, booking->year);
 	string theme = reg->packageType + " - " + booking->decoTheme;
 
 	// Simple replace function
