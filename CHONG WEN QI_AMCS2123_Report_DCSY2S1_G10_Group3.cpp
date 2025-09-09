@@ -694,8 +694,8 @@ int inputGuests() {
 
 string inputPackage() {
 	cout << "\nPackage Options:\n";
-	cout << "1. Surprise Propose (RM 1200   )\n";
-	cout << "2. Romantic Dinner (RM 1500   )\n";
+	cout << "1. Surprise Propose (RM 1200)\n";
+	cout << "2. Romantic Dinner (RM 1500)\n";
 	cout << "3. Family Gathering (RM 1500)\n";
 
 	int choice = getValidatedChoice(1, 3, "Select package: ");
@@ -2039,10 +2039,10 @@ void deleteInvitationsByRegistrationId(const string& registrationID) {
 	if (outFile.is_open()) {
 		outFile << newContent;
 		outFile.close();
-		cout << "✓ Associated invitation template deleted.\n";
+		cout << "Associated invitation template deleted.\n";
 	}
 	else {
-		cout << "✗ Error: Could not update invitation file.\n";
+		cout << "Error: Could not update invitation file.\n";
 	}
 }
 void cleanupInvitationFile() {
