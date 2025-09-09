@@ -503,21 +503,21 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 			string input;
 
 			// Update 1st Couple Name
-			cout << "Current 1st Groom-to-be: " << r.manName << "\n";
-			cout << "Update 1st Groom-to-be name? (y/n): ";
+			cout << "Current Groom-to-be: " << r.manName << "\n";
+			cout << "Update Groom-to-be name? (y/n): ";
 			getline(cin, input);
 			if (!input.empty() && tolower(input[0]) == 'y') {
-				r.manName = inputName("Enter new 1st Groom-to-be name: ");
+				r.manName = inputName("Enter new Groom-to-be name: ");
 				cout << "Name updated successfully!\n";
 			}
 			cout << "\n";
 
 			// Update 2nd Couple Name
-			cout << "Current 2nd Bridge-to-be: " << r.womanName << "\n";
-			cout << "Update 2nd Bridge-to-be name? (y/n): ";
+			cout << "Current Bride-to-be: " << r.womanName << "\n";
+			cout << "Update Bride-to-be name? (y/n): ";
 			getline(cin, input);
 			if (!input.empty() && tolower(input[0]) == 'y') {
-				r.womanName = inputName("Enter new 2nd Bridge-to-be name: ");
+				r.womanName = inputName("Enter new Bride-to-be name: ");
 				cout << "Name updated successfully!\n";
 			}
 			cout << "\n";
@@ -694,8 +694,8 @@ int inputGuests() {
 
 string inputPackage() {
 	cout << "\nPackage Options:\n";
-	cout << "1. Surprise Propose (RM 1200   )\n";
-	cout << "2. Romantic Dinner (RM 1500   )\n";
+	cout << "1. Surprise Propose (RM 1200)\n";
+	cout << "2. Romantic Dinner (RM 1500)\n";
 	cout << "3. Family Gathering (RM 1500)\n";
 
 	int choice = getValidatedChoice(1, 3, "Select package: ");
@@ -724,7 +724,7 @@ string inputSpecialRequest() {
 EventRegistration inputRegistration() {
 	EventRegistration reg;
 	reg.manName = inputName("Enter 1st Groom-to-be name : ");
-	reg.womanName = inputName("Enter 2nd Bridge-to-be name : ");
+	reg.womanName = inputName("Enter 2nd -to-be name : ");
 	reg.phone = inputPhone();
 	reg.email = inputEmail();
 	reg.numberOfGuests = inputGuests();
@@ -2039,10 +2039,10 @@ void deleteInvitationsByRegistrationId(const string& registrationID) {
 	if (outFile.is_open()) {
 		outFile << newContent;
 		outFile.close();
-		cout << "✓ Associated invitation template deleted.\n";
+		cout << "Associated invitation template deleted.\n";
 	}
 	else {
-		cout << "✗ Error: Could not update invitation file.\n";
+		cout << "Error: Could not update invitation file.\n";
 	}
 }
 void cleanupInvitationFile() {
