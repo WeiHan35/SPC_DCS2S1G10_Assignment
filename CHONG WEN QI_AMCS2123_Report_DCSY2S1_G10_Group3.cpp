@@ -503,21 +503,21 @@ void updateRegistrationByID(vector<EventRegistration>& reg) {
 			string input;
 
 			// Update 1st Couple Name
-			cout << "Current 1st Groom-to-be: " << r.manName << "\n";
-			cout << "Update 1st Groom-to-be name? (y/n): ";
+			cout << "Current Groom-to-be: " << r.manName << "\n";
+			cout << "Update Groom-to-be name? (y/n): ";
 			getline(cin, input);
 			if (!input.empty() && tolower(input[0]) == 'y') {
-				r.manName = inputName("Enter new 1st Groom-to-be name: ");
+				r.manName = inputName("Enter new Groom-to-be name: ");
 				cout << "Name updated successfully!\n";
 			}
 			cout << "\n";
 
 			// Update 2nd Couple Name
-			cout << "Current 2nd Bridge-to-be: " << r.womanName << "\n";
-			cout << "Update 2nd Bridge-to-be name? (y/n): ";
+			cout << "Current Bride-to-be: " << r.womanName << "\n";
+			cout << "Update Bride-to-be name? (y/n): ";
 			getline(cin, input);
 			if (!input.empty() && tolower(input[0]) == 'y') {
-				r.womanName = inputName("Enter new 2nd Bridge-to-be name: ");
+				r.womanName = inputName("Enter new Bride-to-be name: ");
 				cout << "Name updated successfully!\n";
 			}
 			cout << "\n";
@@ -724,7 +724,7 @@ string inputSpecialRequest() {
 EventRegistration inputRegistration() {
 	EventRegistration reg;
 	reg.manName = inputName("Enter 1st Groom-to-be name : ");
-	reg.womanName = inputName("Enter 2nd Bridge-to-be name : ");
+	reg.womanName = inputName("Enter 2nd -to-be name : ");
 	reg.phone = inputPhone();
 	reg.email = inputEmail();
 	reg.numberOfGuests = inputGuests();
